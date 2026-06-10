@@ -4,7 +4,7 @@ from flask import Flask, send_from_directory, session, redirect, url_for, flash
 from flask_login import LoginManager, current_user
 from flask_wtf.csrf import CSRFProtect
 from config import Config
-from models import db, Admin, User, Category, Coupon, Banner
+from models import db, Admin, User, Category, Coupon, Banner, Product, ProductImage
 
 # Initialize extensions
 csrf = CSRFProtect()
@@ -143,6 +143,35 @@ def seed_database():
         )
         db.session.add(coupon)
         print("Default discount coupon seeded.")
+        
+    # 4. Seed test Kanchipuram Silk Saree product
+    kanchi_category = Category.query.filter_by(slug='kanchipuram-silk').first()
+    if kanchi_category:
+        existing_product = Product.query.filter_by(product_code='PS-TEST-KANCHI').first()
+        if not existing_product:
+            test_product = Product(
+                product_code='PS-TEST-KANCHI',
+                name='Kanchipuram Silk Saree (Test)',
+                slug='kanchipuram-silk-saree-test',
+                category_id=kanchi_category.id,
+                price=1.00,  # 1 Rupee for easy live payment gateway testing!
+                description='Beautiful traditional Kanchipuram Silk Saree for testing payment flow.',
+                material='Pure Silk',
+                color='Gold & Crimson',
+                stock_quantity=100,
+                availability_status='In Stock'
+            )
+            db.session.add(test_product)
+            db.session.flush() # Populate the ID
+            
+            # Associate image
+            test_image = ProductImage(
+                product_id=test_product.id,
+                image_path='categories/kanchipuram.png', # Matches the uploaded category image file
+                is_primary=True
+            )
+            db.session.add(test_image)
+            print("Test Kanchipuram Saree seeded.")
         
     db.session.commit()
 
