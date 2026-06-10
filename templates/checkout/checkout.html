@@ -1,0 +1,311 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout | PS-TEX Saree Store{% endblock %}
+
+{% block content %}
+<div class="container my-md-5 my-3 px-3">
+    <!-- Responsive Header -->
+    <h1 class="display-5 fs-2 fs-md-1 font-serif text-maroon mb-4 text-center text-md-start">Secure Checkout</h1>
+    
+    <div class="row g-4">
+        <!-- Shipping Address Form -->
+        <div class="col-lg-7 col-12">
+            <div class="card border-0 shadow-sm p-3 p-md-4 rounded bg-white">
+                <h4 class="font-serif text-maroon mb-4 border-bottom pb-2 fs-5 fs-md-4 fw-bold">Shipping Information</h4>
+                
+                <form id="shippingForm">
+                    <div class="row g-3">
+                        <div class="col-md-6 col-12">
+                            <label for="first_name" class="form-label fw-semibold">First Name</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" value="{{ current_user.first_name }}" required>
+                        </div>
+                        <div class="col-md-6 col-12">
+                            <label for="last_name" class="form-label fw-semibold">Last Name</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" value="{{ current_user.last_name }}" required>
+                        </div>
+                        <div class="col-12">
+                            <label for="address" class="form-label fw-semibold">Shipping Address</label>
+                            <textarea class="form-control" id="address" name="address" rows="3" placeholder="Door No, Street Name, Locality" required></textarea>
+                        </div>
+                        <div class="col-md-4 col-12">
+                            <label for="city" class="form-label fw-semibold">City</label>
+                            <input type="text" class="form-control" id="city" name="city" placeholder="Kanchipuram" required>
+                        </div>
+                        <div class="col-md-4 col-6">
+                            <label for="state" class="form-label fw-semibold">State</label>
+                            <input type="text" class="form-control" id="state" name="state" placeholder="Tamil Nadu" required>
+                        </div>
+                        <div class="col-md-4 col-6">
+                            <label for="pincode" class="form-label fw-semibold">Pincode</label>
+                            <input type="text" class="form-control" id="pincode" name="pincode" placeholder="631501" required>
+                        </div>
+                        <div class="col-md-6 col-12">
+                            <label for="phone" class="form-label fw-semibold">Contact Mobile</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" value="{{ current_user.phone or '' }}" required>
+                        </div>
+                        <div class="col-md-6 col-12">
+                            <label for="email" class="form-label fw-semibold">Email Address (For Invoice)</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ current_user.email }}" required>
+                        </div>
+                    </div>
+                    
+                    <!-- Responsive payButton -->
+                    <button type="submit" id="payButton" class="btn btn-maroon w-100 py-3 font-serif fs-5 mt-4 shadow-sm btn-responsive-checkout" style="border-radius: 8px;">
+                        <i class="bi bi-credit-card-2-front me-2"></i> Proceed to Payment
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Cart Items & Pricing Side -->
+        <div class="col-lg-5 col-12">
+            <div class="card border-0 shadow-sm p-3 p-md-4 rounded bg-white mb-4">
+                <h4 class="font-serif text-maroon mb-4 border-bottom pb-2 fs-5 fs-md-4 fw-bold">Your Order</h4>
+                
+                <!-- Items list -->
+                <div class="mb-4" style="max-height: 250px; overflow-y: auto;">
+                    {% for item in cart_items %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="ratio ratio-1x1 bg-cream rounded overflow-hidden me-3" style="width: 50px; height: 50px;">
+                                <img src="{{ url_for('uploaded_files', filename=item.product.primary_image) }}" alt="{{ item.product.name }}" class="object-fit-cover w-100 h-100">
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0 small text-truncate" style="max-width: 180px;">{{ item.product.name }}</h6>
+                                <span class="text-muted small">Qty: {{ item.quantity }}</span>
+                            </div>
+                        </div>
+                        <span class="fw-semibold text-dark small">₹{{ "%.2f"|format(item.product.get_price * item.quantity) }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Coupon Apply Box -->
+                <div class="mb-4">
+                    <h6 class="fw-semibold mb-2" style="font-size: 14px;">Discount Coupon</h6>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="couponCode" placeholder="Enter coupon (e.g. PSTEX10)" value="{{ coupon_code or '' }}" {% if coupon_code %}disabled{% endif %}>
+                        {% if coupon_code %}
+                            <button class="btn btn-outline-danger" type="button" id="removeCouponBtn">Remove</button>
+                        {% else %}
+                            <button class="btn btn-outline-maroon" type="button" id="applyCouponBtn">Apply</button>
+                        {% endif %}
+                    </div>
+                    <div id="couponMessage" class="form-text small mt-1"></div>
+                </div>
+                
+                <!-- Totals -->
+                <div class="d-flex justify-content-between mb-2 small text-muted">
+                    <span>Subtotal</span>
+                    <span>₹{{ "%.2f"|format(subtotal) }}</span>
+                </div>
+                
+                <div class="d-flex justify-content-between mb-2 small text-muted {% if discount == 0 %}d-none{% endif %}" id="discountRow">
+                    <span>Coupon Discount</span>
+                    <span class="text-danger" id="discountValue">-₹{{ "%.2f"|format(discount) }}</span>
+                </div>
+                
+                <div class="d-flex justify-content-between mb-2 small text-muted">
+                    <span>Delivery Charge</span>
+                    <span class="text-success fw-bold">FREE</span>
+                </div>
+                
+                <hr>
+                
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="fw-bold">Total Payable</span>
+                    <strong class="fs-4 text-maroon" id="checkoutGrandTotal">₹{{ "%.2f"|format(grand_total) }}</strong>
+                </div>
+            </div>
+            
+            <div class="text-center text-muted small mt-2">
+                <i class="bi bi-shield-fill-check text-success"></i> 256-bit SSL encrypted connection. Payment details are never saved on our servers.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Razorpay Checkout SDK script -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const getCsrfToken = () => {
+            const meta = document.querySelector('meta[name="csrf-token"]');
+            return meta ? meta.getAttribute('content') : '';
+        };
+
+        const couponInput = document.getElementById('couponCode');
+        const applyBtn = document.getElementById('applyCouponBtn');
+        const removeBtn = document.getElementById('removeCouponBtn');
+        const couponMsg = document.getElementById('couponMessage');
+        const discountRow = document.getElementById('discountRow');
+        const discountVal = document.getElementById('discountValue');
+        const grandTotalText = document.getElementById('checkoutGrandTotal');
+
+        // Apply Coupon logic
+        if (applyBtn) {
+            applyBtn.addEventListener('click', async () => {
+                const code = couponInput.value.trim();
+                if (!code) return;
+                
+                applyBtn.disabled = true;
+                const formData = new FormData();
+                formData.append('coupon_code', code);
+                
+                try {
+                    const response = await fetch('/checkout/apply-coupon', {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': getCsrfToken() },
+                        body: formData
+                    });
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        couponMsg.className = "form-text small text-success";
+                        couponMsg.textContent = data.message;
+                        couponInput.disabled = true;
+                        
+                        // Toggle buttons
+                        const newBtn = document.createElement('button');
+                        newBtn.className = "btn btn-outline-danger";
+                        newBtn.type = "button";
+                        newBtn.id = "removeCouponBtn";
+                        newBtn.textContent = "Remove";
+                        applyBtn.replaceWith(newBtn);
+                        
+                        // Show discount details
+                        discountRow.classList.remove('d-none');
+                        discountVal.textContent = `-₹${parseFloat(data.discount).toFixed(2)}`;
+                        grandTotalText.textContent = `₹${parseFloat(data.grand_total).toFixed(2)}`;
+                        
+                        // Re-bind click event to newly injected remove button
+                        newBtn.addEventListener('click', removeCoupon);
+                    } else {
+                        couponMsg.className = "form-text small text-danger";
+                        couponMsg.textContent = data.message;
+                    }
+                } catch (err) {
+                    console.error(err);
+                } finally {
+                    applyBtn.disabled = false;
+                }
+            });
+        }
+        
+        if (removeBtn) {
+            removeBtn.addEventListener('click', removeCoupon);
+        }
+
+        async function removeCoupon() {
+            try {
+                const response = await fetch('/checkout/remove-coupon', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCsrfToken() }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    location.reload(); // Refresh to clean layout
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Razorpay Checkout Trigger
+        const shippingForm = document.getElementById('shippingForm');
+        const payButton = document.getElementById('payButton');
+
+        shippingForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            payButton.disabled = true;
+            payButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing Order...';
+            
+            const formData = new FormData(shippingForm);
+            
+            try {
+                // Step 1: Create Database Order and fetch Razorpay Order ID
+                const response = await fetch('/checkout/create-order', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCsrfToken() },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                if (!data.success) {
+                    alert(data.message || 'Error creating order.');
+                    payButton.disabled = false;
+                    payButton.innerHTML = '<i class="bi bi-credit-card-2-front me-2"></i> Proceed to Payment';
+                    return;
+                }
+                
+                // Step 2: Open Razorpay Checkout modal
+                const options = {
+                    "key": data.razorpay_key_id,
+                    "amount": data.amount,
+                    "currency": "INR",
+                    "name": "PS-TEX",
+                    "description": "Authentic Sarees Order " + data.order_number,
+                    "image": "{{ url_for('static', filename='images/placeholder.svg') }}",
+                    "order_id": data.razorpay_order_id,
+                    "handler": async function (paymentResponse) {
+                        // Success payment handler
+                        payButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Verifying Transaction...';
+                        await verifyPayment(paymentResponse);
+                    },
+                    "prefill": {
+                        "name": data.name,
+                        "email": data.email,
+                        "contact": data.phone
+                    },
+                    "theme": {
+                        "color": "#7A1232" // Maroon theme color
+                    }
+                };
+                
+                const rzp1 = new Razorpay(options);
+                rzp1.on('payment.failed', function (failedResponse) {
+                    window.location.href = `/checkout/failure?message=${encodeURIComponent(failedResponse.error.description)}`;
+                });
+                rzp1.open();
+                
+            } catch (err) {
+                console.error(err);
+                alert('Connection failure. Try again.');
+                payButton.disabled = false;
+                payButton.innerHTML = '<i class="bi bi-credit-card-2-front me-2"></i> Proceed to Payment';
+            }
+        });
+
+        // Step 3: Verify Payment Signature via server POST
+        async function verifyPayment(paymentResponse) {
+            const verifyData = new FormData();
+            verifyData.append('razorpay_order_id', paymentResponse.razorpay_order_id);
+            verifyData.append('razorpay_payment_id', paymentResponse.razorpay_payment_id);
+            verifyData.append('razorpay_signature', paymentResponse.razorpay_signature);
+            
+            try {
+                const response = await fetch('/checkout/verify', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCsrfToken() },
+                    body: verifyData
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    // Redirect to payment success page
+                    window.location.href = `/checkout/success?order_number=${data.order_number}`;
+                } else {
+                    window.location.href = `/checkout/failure?message=${encodeURIComponent(data.message)}`;
+                }
+            } catch (err) {
+                console.error(err);
+                window.location.href = '/checkout/failure?message=Signature%20verification%20failed%20due%20to%20network%20error.';
+            }
+        }
+    });
+</script>
+{% endblock %}

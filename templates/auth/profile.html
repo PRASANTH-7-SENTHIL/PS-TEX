@@ -1,0 +1,508 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile | PS-TEX{% endblock %}
+
+{% block content %}
+
+<!-- ==========================================
+     DESKTOP LAYOUT (min-width: 576px)
+     ========================================== -->
+<div class="desktop-only container my-5">
+    <div class="row">
+        <!-- Sidebar Navigation -->
+        <div class="col-lg-3 mb-4">
+            <div class="card border-0 shadow-sm p-4 rounded bg-white text-center">
+                <div class="bg-cream rounded-circle d-inline-flex align-items-center justify-content-center mb-3 mx-auto" style="width: 80px; height: 80px; border: 2px solid var(--color-gold);">
+                    <i class="bi bi-person-fill text-maroon fs-1"></i>
+                </div>
+                <h5 class="font-serif text-maroon mb-1">{{ current_user.name }}</h5>
+                <p class="text-muted small mb-0">{{ current_user.email }}</p>
+                <div class="traditional-divider mb-3"><i class="bi bi-flower1"></i></div>
+                
+                <div class="nav flex-column nav-pills text-start" id="profileTabsDesktop" role="tablist" aria-orientation="vertical">
+                    <button class="nav-link active border-0 text-start py-3" id="details-tab-desktop" data-bs-toggle="pill" data-bs-target="#details-desktop" type="button" role="tab" aria-controls="details-desktop" aria-selected="true">
+                        <i class="bi bi-person-gear me-2"></i> Profile Details
+                    </button>
+                    <button class="nav-link border-0 text-start py-3" id="orders-tab-desktop" data-bs-toggle="pill" data-bs-target="#orders-desktop" type="button" role="tab" aria-controls="orders-desktop" aria-selected="false">
+                        <i class="bi bi-clock-history me-2"></i> Order History
+                    </button>
+                    <button class="nav-link border-0 text-start py-3" id="wishlist-tab-desktop" data-bs-toggle="pill" data-bs-target="#wishlist-desktop" type="button" role="tab" aria-controls="wishlist-desktop" aria-selected="false">
+                        <i class="bi bi-heart me-2"></i> My Wishlist
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab Contents -->
+        <div class="col-lg-9">
+            <div class="tab-content" id="profileTabsDesktopContent">
+                
+                <!-- Tab 1: Profile Details -->
+                <div class="tab-pane fade show active" id="details-desktop" role="tabpanel" aria-labelledby="details-tab-desktop">
+                    <div class="card border-0 shadow-sm p-4 rounded bg-white mb-4">
+                        <h4 class="font-serif text-maroon mb-4 border-bottom pb-2">Personal Information</h4>
+                        <form action="{{ url_for('auth.profile') }}" method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="action" value="update_profile">
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="first_name_d" class="form-label fw-semibold">First Name</label>
+                                    <input type="text" class="form-control" id="first_name_d" name="first_name" value="{{ current_user.first_name }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="last_name_d" class="form-label fw-semibold">Last Name</label>
+                                    <input type="text" class="form-control" id="last_name_d" name="last_name" value="{{ current_user.last_name }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="email_d" class="form-label fw-semibold">Email Address (Cannot change)</label>
+                                    <input type="email" class="form-control bg-light" id="email_d" value="{{ current_user.email }}" disabled>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="phone_d" class="form-label fw-semibold">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phone_d" name="phone" value="{{ current_user.phone or '' }}" required>
+                                </div>
+                                <div class="col-12 mt-3">
+                                    <button type="submit" class="btn btn-maroon px-4 py-2">Save Details</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="card border-0 shadow-sm p-4 rounded bg-white">
+                        <h4 class="font-serif text-maroon mb-4 border-bottom pb-2">Change Password</h4>
+                        <form action="{{ url_for('auth.profile') }}" method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="action" value="change_password">
+                            
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label for="old_password_d" class="form-label fw-semibold">Current Password</label>
+                                    <input type="password" class="form-control" id="old_password_d" name="old_password" placeholder="••••••••" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="new_password_d" class="form-label fw-semibold">New Password</label>
+                                    <input type="password" class="form-control" id="new_password_d" name="new_password" placeholder="••••••••" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="confirm_password_d" class="form-label fw-semibold">Confirm New Password</label>
+                                    <input type="password" class="form-control" id="confirm_password_d" name="confirm_password" placeholder="••••••••" required>
+                                </div>
+                                <div class="col-12 mt-3">
+                                    <button type="submit" class="btn btn-outline-maroon px-4 py-2">Update Password</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Tab 2: Order History -->
+                <div class="tab-pane fade" id="orders-desktop" role="tabpanel" aria-labelledby="orders-tab-desktop">
+                    <div class="card border-0 shadow-sm p-4 rounded bg-white">
+                        <h4 class="font-serif text-maroon mb-4 border-bottom pb-2">Order History & Tracking</h4>
+                        
+                        {% if orders %}
+                        <div class="accordion" id="ordersAccordionDesktop">
+                            {% for order in orders %}
+                            <div class="accordion-item border mb-3 rounded overflow-hidden">
+                                <h2 class="accordion-header" id="heading-desktop-{{ order.id }}">
+                                    <button class="accordion-button collapsed py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-desktop-{{ order.id }}" aria-expanded="false" aria-controls="collapse-desktop-{{ order.id }}">
+                                        <div class="d-flex flex-wrap justify-content-between align-items-center w-100 pe-3">
+                                            <div>
+                                                <strong class="text-maroon">{{ order.order_number }}</strong>
+                                                <span class="text-muted small ms-2">({{ order.created_at.strftime('%d %b %Y') }})</span>
+                                            </div>
+                                            <div class="mt-1 mt-sm-0">
+                                                <span class="badge bg-{% if order.order_status in ['Paid', 'Delivered'] %}success{% elif order.order_status in ['Processing', 'Shipped'] %}info{% elif order.order_status == 'Pending' %}warning{% else %}danger{% endif %} text-white me-2">
+                                                    {{ order.order_status }}
+                                                </span>
+                                                <strong class="text-dark">₹{{ "%.2f"|format(order.total_amount) }}</strong>
+                                            </div>
+                                        </div>
+                                    </button>
+                                </h2>
+                                
+                                <div id="collapse-desktop-{{ order.id }}" class="accordion-collapse collapse" aria-labelledby="heading-desktop-{{ order.id }}" data-bs-parent="#ordersAccordionDesktop">
+                                    <div class="accordion-body bg-light">
+                                        {% if order.order_status in ['Shipped', 'Delivered'] and order.tracking_number %}
+                                        <div class="card border-0 shadow-sm p-3 mb-3 bg-white">
+                                            <h6 class="fw-bold text-maroon mb-2"><i class="bi bi-truck"></i> Shipping Status & Tracking</h6>
+                                            <div class="row text-center my-3">
+                                                <div class="col-4">
+                                                    <i class="bi bi-box-seam text-success fs-3"></i>
+                                                    <div class="small fw-semibold mt-1">Processed</div>
+                                                </div>
+                                                <div class="col-4">
+                                                    <i class="bi bi-truck text-{% if order.order_status in ['Shipped', 'Delivered'] %}success{% else %}muted{% endif %} fs-3"></i>
+                                                    <div class="small fw-semibold mt-1">Dispatched</div>
+                                                </div>
+                                                <div class="col-4">
+                                                    <i class="bi bi-house-check text-{% if order.order_status == 'Delivered' %}success{% else %}muted{% endif %} fs-3"></i>
+                                                    <div class="small fw-semibold mt-1">Delivered</div>
+                                                </div>
+                                            </div>
+                                            <div class="bg-light p-2 rounded small mt-2">
+                                                <strong>Courier Partner:</strong> {{ order.courier_partner or 'Express Delivery' }}<br>
+                                                <strong>Tracking Number:</strong> <span class="font-monospace text-maroon fw-bold">{{ order.tracking_number }}</span>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <h6 class="fw-bold mb-2 text-dark">Items Summary</h6>
+                                        <ul class="list-group mb-3 border-0">
+                                            {% for item in order.items %}
+                                            <li class="list-group-item d-flex justify-content-between align-items-center bg-white border-0 py-2 mb-1 rounded shadow-2xs">
+                                                <div>
+                                                    <a href="{{ url_for('main.product_detail', slug=item.product.slug) }}" class="text-maroon fw-semibold text-decoration-none">{{ item.product.name }}</a>
+                                                    <div class="text-muted small">Qty: {{ item.quantity }} × ₹{{ item.price }}</div>
+                                                </div>
+                                                <strong class="text-dark">₹{{ "%.2f"|format(item.quantity * item.price) }}</strong>
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                        
+                                        <div class="row g-3 text-muted small bg-white p-3 rounded">
+                                            <div class="col-sm-6">
+                                                <strong>Shipping Address:</strong><br>
+                                                {{ order.shipping_address }}<br>
+                                                {{ order.city }}, {{ order.state }} - {{ order.pincode }}
+                                            </div>
+                                            <div class="col-sm-6 text-sm-end">
+                                                <strong>Total Amount:</strong> ₹{{ order.total_amount }}<br>
+                                                {% if order.discount_amount > 0 %}
+                                                    <strong>Coupon Discount:</strong> -₹{{ order.discount_amount }}<br>
+                                                {% endif %}
+                                                <strong>Email:</strong> {{ order.email }}<br>
+                                                <strong>Phone:</strong> {{ order.phone }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-journal-x fs-2 mb-2 text-muted"></i>
+                            <p class="mb-0">You have not placed any orders yet.</p>
+                            <a href="{{ url_for('main.shop') }}" class="btn btn-sm btn-maroon mt-3">Shop Sarees</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Tab 3: Wishlist -->
+                <div class="tab-pane fade" id="wishlist-desktop" role="tabpanel" aria-labelledby="wishlist-tab-desktop">
+                    <div class="card border-0 shadow-sm p-4 rounded bg-white">
+                        <h4 class="font-serif text-maroon mb-4 border-bottom pb-2">My Saved Sarees</h4>
+                        
+                        {% if wishlist_items %}
+                        <div class="row g-3">
+                            {% for wish in wishlist_items %}
+                            <div class="col-md-4 col-sm-6" id="profile-wishlist-desktop-{{ wish.product.id }}">
+                                <div class="product-card h-100 d-flex flex-column justify-content-between">
+                                    <a href="{{ url_for('cart.remove_from_wishlist', product_id=wish.product.id) }}" class="btn-wishlist active">
+                                        <i class="bi bi-heart-fill text-danger"></i>
+                                    </a>
+                                    
+                                    <div>
+                                        <div class="img-wrapper">
+                                            <a href="{{ url_for('main.product_detail', slug=wish.product.slug) }}">
+                                                <img src="{{ url_for('uploaded_files', filename=wish.product.primary_image) }}" alt="{{ wish.product.name }}">
+                                            </a>
+                                        </div>
+                                        <div class="card-body pb-0">
+                                            <a href="{{ url_for('main.product_detail', slug=wish.product.slug) }}" class="title fs-6 text-truncate d-block">{{ wish.product.name }}</a>
+                                            <div class="price fw-semibold">₹{{ wish.product.price }}</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="card-body pt-0">
+                                        <form class="add-to-cart-form mt-2">
+                                            <input type="hidden" name="product_id" value="{{ wish.product.id }}">
+                                            <input type="hidden" name="quantity" value="1">
+                                            {% if wish.product.stock_quantity > 0 %}
+                                                <button type="submit" class="btn btn-maroon w-100 btn-sm">Add to Cart</button>
+                                            {% else %}
+                                                <button class="btn btn-secondary w-100 btn-sm" disabled>Out of Stock</button>
+                                            {% endif %}
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-heartbreak fs-2 mb-2 text-muted"></i>
+                            <p class="mb-0">Your wishlist is empty.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ==========================================
+     MOBILE LAYOUT (max-width: 575px)
+     ========================================== -->
+<div class="mobile-only px-3 py-3">
+    <!-- User Header Banner -->
+    <div class="card border-0 shadow-sm p-3 rounded bg-white text-center mb-3">
+        <div class="bg-cream rounded-circle d-inline-flex align-items-center justify-content-center mb-2 mx-auto shadow-sm" style="width: 70px; height: 70px; border: 2px solid var(--color-gold);">
+            <i class="bi bi-person-fill text-maroon fs-2"></i>
+        </div>
+        <h6 class="font-serif text-maroon mb-1 fw-bold">{{ current_user.name }}</h6>
+        <p class="text-muted small mb-0" style="font-size: 11px;">{{ current_user.email }}</p>
+        <div class="traditional-divider my-2"><i class="bi bi-flower1"></i></div>
+    </div>
+    
+    <!-- Tab Pills Horiz scroll -->
+    <div class="nav nav-pills text-start flex-nowrap overflow-auto mb-3" id="profileTabsMobile" role="tablist" style="scrollbar-width: none; -webkit-overflow-scrolling: touch;">
+        <button class="nav-link active border-0 text-nowrap py-2 px-3 flex-fill text-center" id="details-tab-mobile" data-bs-toggle="pill" data-bs-target="#details-mobile" type="button" role="tab" aria-controls="details-mobile" aria-selected="true" style="font-size: 13px; border-radius: 20px;">
+            <i class="bi bi-person-gear me-1"></i> Profile Details
+        </button>
+        <button class="nav-link border-0 text-nowrap py-2 px-3 flex-fill text-center ms-1" id="orders-tab-mobile" data-bs-toggle="pill" data-bs-target="#orders-mobile" type="button" role="tab" aria-controls="orders-mobile" aria-selected="false" style="font-size: 13px; border-radius: 20px;">
+            <i class="bi bi-clock-history me-1"></i> Order History
+        </button>
+        <button class="nav-link border-0 text-nowrap py-2 px-3 flex-fill text-center ms-1" id="wishlist-tab-mobile-link" data-bs-toggle="pill" data-bs-target="#wishlist-mobile" type="button" role="tab" aria-controls="wishlist-mobile" aria-selected="false" style="font-size: 13px; border-radius: 20px;">
+            <i class="bi bi-heart me-1"></i> Saved
+        </button>
+    </div>
+    
+    <!-- Tab Contents -->
+    <div class="tab-content" id="profileTabsMobileContent">
+        
+        <!-- Tab 1: Profile Details -->
+        <div class="tab-pane fade show active" id="details-mobile" role="tabpanel" aria-labelledby="details-tab-mobile">
+            <!-- Personal Info Card -->
+            <div class="card border-0 shadow-sm p-3 rounded bg-white mb-3">
+                <h6 class="font-serif text-maroon mb-3 border-bottom pb-2 fw-bold">Personal Information</h6>
+                <form action="{{ url_for('auth.profile') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="action" value="update_profile">
+                    
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label for="first_name_m" class="form-label small fw-semibold mb-1">First Name</label>
+                            <input type="text" class="form-control form-control-sm" id="first_name_m" name="first_name" value="{{ current_user.first_name }}" required style="font-size: 12px;">
+                        </div>
+                        <div class="col-6">
+                            <label for="last_name_m" class="form-label small fw-semibold mb-1">Last Name</label>
+                            <input type="text" class="form-control form-control-sm" id="last_name_m" name="last_name" value="{{ current_user.last_name }}" required style="font-size: 12px;">
+                        </div>
+                        <div class="col-12">
+                            <label for="phone_m" class="form-label small fw-semibold mb-1">Phone Number</label>
+                            <input type="tel" class="form-control form-control-sm" id="phone_m" name="phone" value="{{ current_user.phone or '' }}" required style="font-size: 12px;">
+                        </div>
+                        <div class="col-12 mt-3">
+                            <button type="submit" class="btn btn-maroon btn-sm py-2 px-3 w-100" style="border-radius: 6px; font-size: 12px;">Save Details</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Change Password Card -->
+            <div class="card border-0 shadow-sm p-3 rounded bg-white mb-3">
+                <h6 class="font-serif text-maroon mb-3 border-bottom pb-2 fw-bold">Change Password</h6>
+                <form action="{{ url_for('auth.profile') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="action" value="change_password">
+                    
+                    <div class="row g-2">
+                        <div class="col-12">
+                            <label for="old_password_m" class="form-label small fw-semibold mb-1">Current Password</label>
+                            <input type="password" class="form-control form-control-sm" id="old_password_m" name="old_password" placeholder="••••••••" required style="font-size: 12px;">
+                        </div>
+                        <div class="col-6">
+                            <label for="new_password_m" class="form-label small fw-semibold mb-1">New Password</label>
+                            <input type="password" class="form-control form-control-sm" id="new_password_m" name="new_password" placeholder="••••••••" required style="font-size: 12px;">
+                        </div>
+                        <div class="col-6">
+                            <label for="confirm_password_m" class="form-label small fw-semibold mb-1">Confirm New</label>
+                            <input type="password" class="form-control form-control-sm" id="confirm_password_m" name="confirm_password" placeholder="••••••••" required style="font-size: 12px;">
+                        </div>
+                        <div class="col-12 mt-3">
+                            <button type="submit" class="btn btn-outline-maroon btn-sm py-2 px-3 w-100" style="border-radius: 6px; font-size: 12px;">Update Password</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Tab 2: Order History -->
+        <div class="tab-pane fade" id="orders-mobile" role="tabpanel" aria-labelledby="orders-tab-mobile">
+            <div class="card border-0 shadow-sm p-3 rounded bg-white mb-3">
+                <h6 class="font-serif text-maroon mb-3 border-bottom pb-2 fw-bold">Order History</h6>
+                
+                {% if orders %}
+                <div class="accordion" id="ordersAccordionMobile">
+                    {% for order in orders %}
+                    <div class="accordion-item border mb-2 rounded overflow-hidden">
+                        <h2 class="accordion-header" id="heading-mobile-{{ order.id }}">
+                            <button class="accordion-button collapsed py-2 px-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-mobile-{{ order.id }}" aria-expanded="false" aria-controls="collapse-mobile-{{ order.id }}" style="font-size: 12px;">
+                                <div class="d-flex flex-wrap justify-content-between align-items-center w-100 pe-2">
+                                    <div>
+                                        <strong class="text-maroon">{{ order.order_number }}</strong>
+                                        <div class="text-muted" style="font-size: 9px;">{{ order.created_at.strftime('%d %b %Y') }}</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-{% if order.order_status in ['Paid', 'Delivered'] %}success{% elif order.order_status in ['Processing', 'Shipped'] %}info{% elif order.order_status == 'Pending' %}warning{% else %}danger{% endif %} text-white" style="font-size: 9px; padding: 2px 4px;">
+                                            {{ order.order_status }}
+                                        </span>
+                                        <div class="fw-bold text-dark mt-1">₹{{ order.total_amount|int }}</div>
+                                    </div>
+                                </div>
+                            </button>
+                        </h2>
+                        
+                        <div id="collapse-mobile-{{ order.id }}" class="accordion-collapse collapse" aria-labelledby="heading-mobile-{{ order.id }}" data-bs-parent="#ordersAccordionMobile">
+                            <div class="accordion-body bg-light p-2" style="font-size: 12px;">
+                                {% if order.order_status in ['Shipped', 'Delivered'] and order.tracking_number %}
+                                <div class="card border-0 shadow-2xs p-2 mb-2 bg-white rounded">
+                                    <div class="fw-bold text-maroon mb-1"><i class="bi bi-truck"></i> Delivery Status</div>
+                                    <div class="bg-light p-2 rounded" style="font-size: 10px; line-height: 1.3;">
+                                        <strong>Courier:</strong> {{ order.courier_partner or 'Express Delivery' }}<br>
+                                        <strong>Tracking ID:</strong> <span class="font-monospace text-maroon fw-bold">{{ order.tracking_number }}</span>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="fw-bold text-dark mb-1">Items List</div>
+                                <div class="list-group mb-2">
+                                    {% for item in order.items %}
+                                    <div class="list-group-item d-flex justify-content-between align-items-center p-2 border-0 bg-white mb-1 rounded shadow-3xs">
+                                        <div>
+                                            <a href="{{ url_for('main.product_detail', slug=item.product.slug) }}" class="text-maroon fw-semibold text-decoration-none" style="font-size: 11px;">{{ item.product.name }}</a>
+                                            <div class="text-muted" style="font-size: 9px;">Qty: {{ item.quantity }} × ₹{{ item.price|int }}</div>
+                                        </div>
+                                        <strong class="text-dark">₹{{ (item.quantity * item.price)|int }}</strong>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                
+                                <div class="bg-white p-2 rounded text-muted" style="font-size: 10px; line-height: 1.4;">
+                                    <strong>Shipping Address:</strong><br>
+                                    {{ order.shipping_address }}<br>
+                                    {{ order.city }}, {{ order.state }} - {{ order.pincode }}<br>
+                                    <strong>Contact:</strong> {{ order.phone }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-journal-x fs-2 mb-2 text-muted"></i>
+                    <p class="mb-0 small">No orders found yet.</p>
+                    <a href="{{ url_for('main.shop') }}" class="btn btn-sm btn-maroon mt-2" style="border-radius: 6px;">Shop Sarees</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Tab 3: Wishlist (Saved Sarees in Mobile Grid) -->
+        <div class="tab-pane fade" id="wishlist-mobile" role="tabpanel" aria-labelledby="wishlist-tab-mobile-link">
+            <div class="card border-0 shadow-sm p-2 rounded bg-white">
+                <h6 class="font-serif text-maroon mb-2 border-bottom pb-2 fw-bold text-center">My Saved Sarees</h6>
+                
+                {% if wishlist_items %}
+                <div class="mobile-product-grid mb-2">
+                    {% for wish in wishlist_items %}
+                    <div class="product-card" id="profile-wishlist-mobile-{{ wish.product.id }}">
+                        <div class="position-relative">
+                            <a href="{{ url_for('cart.remove_from_wishlist', product_id=wish.product.id) }}" class="btn-wishlist active">
+                                <i class="bi bi-heart-fill text-danger"></i>
+                            </a>
+                            
+                            <!-- 4:5 Image wrapper -->
+                            <div class="img-wrapper">
+                                <a href="{{ url_for('main.product_detail', slug=wish.product.slug) }}">
+                                    <img src="{{ url_for('uploaded_files', filename=wish.product.primary_image) }}" alt="{{ wish.product.name }}" loading="lazy">
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div class="card-info">
+                            <div>
+                                <div class="category">{{ wish.product.category.name }}</div>
+                                <a href="{{ url_for('main.product_detail', slug=wish.product.slug) }}" class="title" style="font-size: 13px; height: 34px;">{{ wish.product.name }}</a>
+                            </div>
+                            
+                            <div>
+                                <div class="price-section">
+                                    <span class="price" style="font-size: 16px;">₹{{ wish.product.get_price|int }}</span>
+                                </div>
+                                <form class="add-to-cart-form mt-1">
+                                    <input type="hidden" name="product_id" value="{{ wish.product.id }}">
+                                    <input type="hidden" name="quantity" value="1">
+                                    {% if wish.product.stock_quantity > 0 %}
+                                        <button type="submit" class="btn-add-cart" style="height: 35px; font-size: 12px;">Add to Cart</button>
+                                    {% else %}
+                                        <button class="btn-add-cart bg-secondary text-white" disabled style="height: 35px; font-size: 12px;">Out of Stock</button>
+                                    {% endif %}
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-heartbreak fs-2 mb-2 text-muted"></i>
+                    <p class="mb-0 small">Saved list is empty.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Handle tab toggle from URLs with hashtags (e.g. /profile#orders)
+    document.addEventListener('DOMContentLoaded', () => {
+        const hash = window.location.hash;
+        if (hash) {
+            // Find both desktop and mobile tab triggers
+            const triggerElD = document.querySelector(`#profileTabsDesktop button[data-bs-target="${hash}-desktop"]`);
+            const triggerElM = document.querySelector(`#profileTabsMobile button[data-bs-target="${hash}-mobile"]`);
+            
+            if (triggerElD) {
+                document.querySelectorAll('#profileTabsDesktop button').forEach(b => {
+                    b.classList.remove('active');
+                    b.setAttribute('aria-selected', 'false');
+                });
+                document.querySelectorAll('#profileTabsDesktopContent .tab-pane').forEach(tp => {
+                    tp.classList.remove('show', 'active');
+                });
+                triggerElD.classList.add('active');
+                triggerElD.setAttribute('aria-selected', 'true');
+                const paneD = document.querySelector(`${hash}-desktop`);
+                if (paneD) paneD.classList.add('show', 'active');
+            }
+            
+            if (triggerElM) {
+                document.querySelectorAll('#profileTabsMobile button').forEach(b => {
+                    b.classList.remove('active');
+                    b.setAttribute('aria-selected', 'false');
+                });
+                document.querySelectorAll('#profileTabsMobileContent .tab-pane').forEach(tp => {
+                    tp.classList.remove('show', 'active');
+                });
+                triggerElM.classList.add('active');
+                triggerElM.setAttribute('aria-selected', 'true');
+                const paneM = document.querySelector(`${hash}-mobile`);
+                if (paneM) paneM.classList.add('show', 'active');
+            }
+        }
+    });
+</script>
+{% endblock %}

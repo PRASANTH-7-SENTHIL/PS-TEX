@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="100%" height="100%">
+  <rect width="100%" height="100%" fill="#FAF6F0"/>
+  <!-- Decorative Traditional Border -->
+  <rect x="15" y="15" width="370" height="470" fill="none" stroke="#D4AF37" stroke-width="2" stroke-dasharray="5 5"/>
+  <rect x="22" y="22" width="356" height="456" fill="none" stroke="#6B1D2F" stroke-width="1"/>
+  
+  <!-- Saree/Dress Icon -->
+  <g transform="translate(130, 150)">
+    <!-- Silk texture background curves -->
+    <path d="M 70,20 Q 30,120 100,200 Q 110,210 120,200 Q 150,150 90,60" fill="#6B1D2F" opacity="0.15"/>
+    <!-- Folded Saree / Pallu Silhouette -->
+    <path d="M 40,30 Q 10,90 20,150 T 80,220 Q 130,220 120,130 T 70,50 Z" fill="#6B1D2F"/>
+    <!-- Gold Border on Saree (Zari) -->
+    <path d="M 40,30 Q 10,90 20,150 T 80,220" fill="none" stroke="#D4AF37" stroke-width="4"/>
+    <path d="M 42,40 Q 15,95 24,148 T 78,214" fill="none" stroke="#FAF6F0" stroke-width="0.5"/>
+    <path d="M 120,130 T 70,50" fill="none" stroke="#D4AF37" stroke-width="3"/>
+    
+    <!-- Hanger/Hooks -->
+    <path d="M 70,30 Q 70,10 60,10 T 50,20" fill="none" stroke="#AA8722" stroke-width="3"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="50%" y="420" text-anchor="middle" font-family="'Playfair Display', Georgia, serif" font-size="22" font-weight="bold" fill="#6B1D2F">PS-TEX</text>
+  <text x="50%" y="445" text-anchor="middle" font-family="'Inter', sans-serif" font-size="12" letter-spacing="3" fill="#D4AF37" text-transform="uppercase">Premium Sarees</text>
+</svg>

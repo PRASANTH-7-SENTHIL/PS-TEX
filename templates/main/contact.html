@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Contact Us | PS-TEX Saree Store{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="text-center mb-5">
+        <h1 class="display-4 font-serif text-maroon">Get in Touch</h1>
+        <p class="text-muted">Have a query about a specific saree, bulk order, or weave details? Write to us.</p>
+        <div class="traditional-divider"><i class="bi bi-flower1"></i></div>
+    </div>
+    
+    <div class="row g-5">
+        <!-- Contact details column -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm p-4 h-100 rounded">
+                <h4 class="font-serif text-maroon mb-4 border-bottom pb-2">Store Headquarters</h4>
+                
+                <div class="mb-4 d-flex align-items-start">
+                    <i class="bi bi-geo-alt-fill text-maroon fs-4 me-3 mt-1"></i>
+                    <div>
+                        <h6 class="fw-bold mb-1">Our Location</h6>
+                        <p class="text-muted mb-0">Elampillai, Salem,<br>Tamil Nadu, India - 637502</p>
+                    </div>
+                </div>
+                
+                <div class="mb-4 d-flex align-items-start">
+                    <i class="bi bi-telephone-fill text-maroon fs-4 me-3 mt-1"></i>
+                    <div>
+                        <h6 class="fw-bold mb-1">Phone Number</h6>
+                        <p class="text-muted mb-0">+91 72006 08333 (Mon-Sat, 9 AM to 8 PM)</p>
+                    </div>
+                </div>
+                
+                <div class="mb-4 d-flex align-items-start">
+                    <i class="bi bi-envelope-fill text-maroon fs-4 me-3 mt-1"></i>
+                    <div>
+                        <h6 class="fw-bold mb-1">Email Address</h6>
+                        <p class="text-muted mb-0">prasanthsenthilkumar09@gmail.com</p>
+                    </div>
+                </div>
+                
+                <div class="mb-4 d-flex align-items-start">
+                    <i class="bi bi-clock-fill text-maroon fs-4 me-3 mt-1"></i>
+                    <div>
+                        <h6 class="fw-bold mb-1">Store Hours</h6>
+                        <p class="text-muted mb-0">Sunday: Closed<br>Monday - Saturday: 10:00 AM - 08:30 PM</p>
+                    </div>
+                </div>
+                
+                <div class="mb-0 d-flex align-items-start">
+                    <i class="bi bi-whatsapp text-success fs-4 me-3 mt-1"></i>
+                    <div>
+                        <h6 class="fw-bold mb-1">WhatsApp Community</h6>
+                        <p class="text-muted mb-2 small">Join our community for daily stock updates and exclusive weaver designs.</p>
+                        <a href="https://chat.whatsapp.com/GCwBLTsAlYUJre5n4TrLe7" target="_blank" class="btn btn-sm btn-success"><i class="bi bi-whatsapp me-1"></i> Join Group</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        
+        <!-- Contact form column -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm p-4 rounded bg-white">
+                <h4 class="font-serif text-maroon mb-4 border-bottom pb-2">Send an Inquiry</h4>
+                
+                <form action="#" method="POST" onsubmit="event.preventDefault(); alert('Thank you for contacting PS-TEX! We will get back to you within 24 hours.'); this.reset();">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="name" class="form-label fw-semibold">Full Name</label>
+                            <input type="text" class="form-control" id="name" placeholder="Enter your name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="email" class="form-label fw-semibold">Email Address</label>
+                            <input type="email" class="form-control" id="email" placeholder="name@example.com" required>
+                        </div>
+                        <div class="col-md-12">
+                            <label for="phone" class="form-label fw-semibold">Phone Number (Optional)</label>
+                            <input type="tel" class="form-control" id="phone" placeholder="10-digit mobile number">
+                        </div>
+                        <div class="col-md-12">
+                            <label for="subject" class="form-label fw-semibold">Subject</label>
+                            <select class="form-select" id="subject">
+                                <option>Product Inquiry</option>
+                                <option>Bulk / Wedding Orders</option>
+                                <option>Shipping / Delivery Query</option>
+                                <option>Custom Weaving Request</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <label for="message" class="form-label fw-semibold">Your Message</label>
+                            <textarea class="form-control" id="message" rows="5" placeholder="Details of your request..." required></textarea>
+                        </div>
+                        
+                        <div class="col-md-12 mt-4">
+                            <button type="submit" class="btn btn-maroon w-100 py-3 font-serif fs-5">Submit Message</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

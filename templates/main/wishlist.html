@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block title %}My Wishlist | PS-TEX{% endblock %}
+
+{% block content %}
+
+<!-- ==========================================
+     DESKTOP LAYOUT (min-width: 576px)
+     ========================================== -->
+<div class="desktop-only container my-5">
+    <div class="text-center mb-5">
+        <h1 class="display-4 font-serif text-maroon">My Wishlist</h1>
+        <p class="text-muted">Your curated list of premium handloom sarees</p>
+        <div class="traditional-divider"><i class="bi bi-flower1"></i></div>
+    </div>
+    
+    {% if wishlist_items %}
+    <div class="row g-4">
+        {% for item in wishlist_items %}
+        <div class="col-lg-3 col-md-6" id="wishlist-item-desktop-{{ item.product.id }}">
+            <div class="product-card h-100 d-flex flex-column justify-content-between">
+                <!-- Remove from wishlist -->
+                <a href="{{ url_for('cart.remove_from_wishlist', product_id=item.product.id) }}" class="btn-wishlist active" title="Remove from Wishlist">
+                    <i class="bi bi-heart-fill text-danger"></i>
+                </a>
+                
+                {% if item.product.discount_price %}
+                    <span class="badge-discount">SAVE {{ (((item.product.price - item.product.discount_price)/item.product.price)*100)|int }}%</span>
+                {% endif %}
+                
+                <div>
+                    <div class="img-wrapper">
+                        <a href="{{ url_for('main.product_detail', slug=item.product.slug) }}">
+                            {% if item.product.images %}
+                                <img src="{{ url_for('uploaded_files', filename=item.product.primary_image) }}" alt="{{ item.product.name }}">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='images/placeholder.svg') }}" alt="{{ item.product.name }}">
+                            {% endif %}
+                        </a>
+                    </div>
+                    
+                    <div class="card-body pb-0">
+                        <div class="category">{{ item.product.category.name }}</div>
+                        <a href="{{ url_for('main.product_detail', slug=item.product.slug) }}" class="title" title="{{ item.product.name }}">{{ item.product.name }}</a>
+                        <div class="price-box">
+                            {% if item.product.discount_price %}
+                                <span class="original-price">₹{{ item.product.price }}</span>
+                                <span class="price {% if item.product.stock_quantity > 0 %}price-in-stock{% else %}price-out-of-stock{% endif %}">₹{{ item.product.discount_price }}</span>
+                            {% else %}
+                                <span class="price {% if item.product.stock_quantity > 0 %}price-in-stock{% else %}price-out-of-stock{% endif %}">₹{{ item.product.price }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body pt-0">
+                    <form class="add-to-cart-form mt-2">
+                        <input type="hidden" name="product_id" value="{{ item.product.id }}">
+                        <input type="hidden" name="quantity" value="1">
+                        {% if item.product.stock_quantity > 0 %}
+                            <button type="submit" class="btn btn-maroon w-100 btn-sm py-2">
+                                <i class="bi bi-bag-plus me-2"></i> Add to Cart
+                            </button>
+                        {% else %}
+                            <button class="btn btn-secondary w-100 btn-sm py-2" disabled>Out of Stock</button>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty Wishlist Layout -->
+    <div class="text-center py-5 bg-white shadow-sm rounded">
+        <i class="bi bi-heart-break text-muted mb-3" style="font-size: 5rem;"></i>
+        <h3 class="font-serif text-maroon">Your Wishlist is Empty</h3>
+        <p class="text-muted">You haven't saved any sarees yet. Browse our collections and save your favorites.</p>
+        <a href="{{ url_for('main.shop') }}" class="btn btn-maroon mt-3 px-4">Browse Collection</a>
+    </div>
+    {% endif %}
+</div>
+
+
+<!-- ==========================================
+     MOBILE LAYOUT (max-width: 575px)
+     ========================================== -->
+<div class="mobile-only px-3 py-3">
+    <div class="text-center mb-3">
+        <h5 class="font-serif text-maroon fw-bold mb-1">My Wishlist</h5>
+        <p class="text-muted small mb-0">Your curated list of premium handloom sarees</p>
+        <div class="traditional-divider my-2"><i class="bi bi-flower1"></i></div>
+    </div>
+    
+    {% if wishlist_items %}
+    <div class="mobile-product-grid mb-3">
+        {% for item in wishlist_items %}
+        <div class="product-card" id="wishlist-item-mobile-{{ item.product.id }}">
+            <div class="position-relative">
+                <!-- Remove from wishlist -->
+                <a href="{{ url_for('cart.remove_from_wishlist', product_id=item.product.id) }}" class="btn-wishlist active" title="Remove from Wishlist">
+                    <i class="bi bi-heart-fill text-danger"></i>
+                </a>
+                
+                {% if item.product.discount_price %}
+                    <span class="badge-discount" style="font-size: 10px; padding: 2px 6px;">SAVE {{ (((item.product.price - item.product.discount_price)/item.product.price)*100)|int }}%</span>
+                {% endif %}
+                
+                <!-- 4:5 Aspect Ratio Image Wrapper -->
+                <div class="img-wrapper">
+                    <a href="{{ url_for('main.product_detail', slug=item.product.slug) }}">
+                        {% if item.product.images %}
+                            <img src="{{ url_for('uploaded_files', filename=item.product.primary_image) }}" alt="{{ item.product.name }}" loading="lazy">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='images/placeholder.svg') }}" alt="{{ item.product.name }}" loading="lazy">
+                        {% endif %}
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card-info">
+                <div>
+                    <!-- Category Name Uppercase (12px) -->
+                    <div class="category">{{ item.product.category.name }}</div>
+                    <!-- Product Name (16px) -->
+                    <a href="{{ url_for('main.product_detail', slug=item.product.slug) }}" class="title" title="{{ item.product.name }}">{{ item.product.name }}</a>
+                </div>
+                
+                <div>
+                    <!-- Price Box (20px bold price) -->
+                    <div class="price-section">
+                        {% if item.product.discount_price %}
+                            <span class="price {% if item.product.stock_quantity > 0 %}price-in-stock{% else %}price-out-of-stock{% endif %}">₹{{ item.product.discount_price|int }}</span>
+                            <span class="original-price">₹{{ item.product.price|int }}</span>
+                        {% else %}
+                            <span class="price {% if item.product.stock_quantity > 0 %}price-in-stock{% else %}price-out-of-stock{% endif %}">₹{{ item.product.price|int }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Add to Cart Form (Maroon, Full Width, Height 45px, text 14px) -->
+                    <form class="add-to-cart-form">
+                        <input type="hidden" name="product_id" value="{{ item.product.id }}">
+                        <input type="hidden" name="quantity" value="1">
+                        {% if item.product.stock_quantity > 0 %}
+                            <button type="submit" class="btn-add-cart">
+                                <i class="bi bi-bag-plus me-1"></i> Add to Cart
+                            </button>
+                        {% else %}
+                            <button class="btn-add-cart bg-secondary text-white" disabled style="font-size: 12px; height: 35px;">Out of Stock</button>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty Wishlist Layout -->
+    <div class="text-center py-5 px-3 bg-white shadow-sm rounded">
+        <i class="bi bi-heart-break text-muted mb-2" style="font-size: 4rem;"></i>
+        <h6 class="font-serif text-maroon fw-bold">Your Wishlist is Empty</h6>
+        <p class="text-muted small mb-3">You haven't saved any sarees yet.</p>
+        <a href="{{ url_for('main.shop') }}" class="btn btn-maroon btn-sm px-4 py-2" style="border-radius: 8px;">Browse Collection</a>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

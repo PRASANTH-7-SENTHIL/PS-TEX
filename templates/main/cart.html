@@ -1,0 +1,310 @@
+{% extends 'base.html' %}
+
+{% block title %}Shopping Cart | PS-TEX{% endblock %}
+
+{% block content %}
+
+<!-- ==========================================
+     DESKTOP LAYOUT (min-width: 576px)
+     ========================================== -->
+<div class="desktop-only container my-5">
+    <h1 class="display-5 font-serif text-maroon mb-4">Shopping Bag</h1>
+    
+    {% if cart_items %}
+    <div class="row g-4">
+        <!-- Cart Items List -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm p-4 rounded bg-white">
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr class="text-muted small uppercase">
+                                <th style="width: 100px;">Product</th>
+                                <th>Details</th>
+                                <th class="text-center" style="width: 120px;">Price</th>
+                                <th class="text-center" style="width: 140px;">Quantity</th>
+                                <th class="text-end" style="width: 120px;">Total</th>
+                                <th class="text-center" style="width: 50px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in cart_items %}
+                            <tr>
+                                <td>
+                                    <div class="ratio ratio-4x5 bg-cream rounded overflow-hidden" style="width: 80px; height: 100px; position: relative;">
+                                        <img src="{{ url_for('uploaded_files', filename=item.image_path) }}" alt="{{ item.name }}" class="object-fit-cover w-100 h-100" style="position: absolute; top:0; left:0;">
+                                    </div>
+                                </td>
+                                <td>
+                                    <h6 class="fw-bold mb-1">{{ item.name }}</h6>
+                                    <span class="badge bg-secondary mb-1">Code: {{ item.product_code }}</span>
+                                    <div class="small text-muted">
+                                        {% if item.stock_quantity > 0 %}
+                                            <span class="text-success"><i class="bi bi-check-circle"></i> In Stock</span>
+                                        {% else %}
+                                            <span class="text-danger"><i class="bi bi-x-circle"></i> Out of Stock</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    ₹{{ "%.2f"|format(item.price) }}
+                                </td>
+                                <td>
+                                    <input type="number" class="form-control form-control-sm text-center cart-qty-input-desktop" data-product-id="{{ item.product_id }}" value="{{ item.quantity }}" min="1" max="{{ item.stock_quantity }}">
+                                </td>
+                                <td class="text-end fw-semibold item-total-desktop-val" data-product-id="{{ item.product_id }}">
+                                    ₹{{ "%.2f"|format(item.total) }}
+                                </td>
+                                <td class="text-center">
+                                    <a href="{{ url_for('cart.remove_from_cart', product_id=item.product_id) }}" class="text-danger fs-5" title="Remove Item">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="d-flex justify-content-between mt-3">
+                    <a href="{{ url_for('main.shop') }}" class="btn btn-outline-maroon"><i class="bi bi-arrow-left me-2"></i> Continue Shopping</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Cart Summary Sidebar -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm p-4 rounded bg-white sticky-lg-top" style="top: 90px;">
+                <h4 class="font-serif text-maroon mb-4 border-bottom pb-2">Order Summary</h4>
+                
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted">Subtotal</span>
+                    <strong id="cart-subtotal-desktop">₹{{ "%.2f"|format(subtotal) }}</strong>
+                </div>
+                
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted">Shipping</span>
+                    <span class="text-success fw-bold">FREE Delivery</span>
+                </div>
+                
+                <hr>
+                
+                <div class="d-flex justify-content-between mb-4">
+                    <span class="fs-5 fw-bold">Total Amount</span>
+                    <strong class="fs-4 text-maroon" id="cart-grandtotal-desktop">₹{{ "%.2f"|format(subtotal) }}</strong>
+                </div>
+                
+                <div class="alert alert-info py-2 px-3 small border-0 mb-4" style="border-radius: 4px;">
+                    <i class="bi bi-info-circle me-1"></i> Coupon discounts and shipping details will be collected at checkout.
+                </div>
+                
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('checkout.index') }}" class="btn btn-maroon w-100 py-3 font-serif fs-5 shadow-sm">
+                        Proceed to Checkout <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('auth.login', next='/checkout') }}" class="btn btn-maroon w-100 py-3 font-serif fs-5 shadow-sm">
+                        Log In to Checkout <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                    <p class="text-center text-muted small mt-2">Create an account or login to process secure Razorpay payment.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Empty Cart -->
+    <div class="text-center py-5 bg-white shadow-sm rounded">
+        <i class="bi bi-bag-x text-muted mb-3" style="font-size: 5rem;"></i>
+        <h3 class="font-serif text-maroon">Your Shopping Bag is Empty</h3>
+        <p class="text-muted">You haven't added any sarees to your cart yet. Explore our designer weaves and find your match.</p>
+        <a href="{{ url_for('main.shop') }}" class="btn btn-maroon mt-3 px-4">Browse Collection</a>
+    </div>
+    {% endif %}
+</div>
+
+
+<!-- ==========================================
+     MOBILE LAYOUT (max-width: 575px)
+     ========================================== -->
+<div class="mobile-only px-3 py-3">
+    <h5 class="font-serif text-maroon mb-3 fw-bold">Shopping Cart</h5>
+    
+    {% if cart_items %}
+    <div class="d-flex flex-column gap-3 mb-4">
+        <!-- Cart Items List (Mobile-Friendly Stack) -->
+        {% for item in cart_items %}
+        <div class="card border-0 shadow-sm p-3 rounded bg-white position-relative">
+            <div class="d-flex gap-3">
+                <!-- Saree Image (Aspect Ratio 4:5) -->
+                <div style="width: 70px; flex-shrink: 0;">
+                    <div class="ratio ratio-4x5 bg-cream rounded overflow-hidden">
+                        <img src="{{ url_for('uploaded_files', filename=item.image_path) }}" alt="{{ item.name }}" class="object-fit-cover w-100 h-100">
+                    </div>
+                </div>
+                <!-- Saree Details -->
+                <div class="flex-grow-1">
+                    <h6 class="fw-bold mb-1" style="font-size: 14px; padding-right: 20px;">{{ item.name }}</h6>
+                    <div class="small text-muted mb-2" style="font-size: 11px;">Code: {{ item.product_code }}</div>
+                    
+                    <div class="d-flex align-items-center justify-content-between">
+                        <!-- Price and Item Total -->
+                        <div>
+                            <span class="text-maroon fw-bold" style="font-size: 15px;">₹{{ item.price|int }}</span>
+                            <div class="text-muted small" style="font-size: 10px;">Item Total: <span class="fw-bold text-dark item-total-mobile-val" data-product-id="{{ item.product_id }}">₹{{ item.total|int }}</span></div>
+                        </div>
+                        
+                        <!-- Quantity Input -->
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="small text-muted" style="font-size: 11px;">Qty:</span>
+                            <input type="number" class="form-control form-control-sm text-center cart-qty-input-mobile border-secondary" data-product-id="{{ item.product_id }}" value="{{ item.quantity }}" min="1" max="{{ item.stock_quantity }}" style="width: 55px; height: 28px; font-size: 12px; border-radius: 4px; padding: 2px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Remove Button -->
+            <a href="{{ url_for('cart.remove_from_cart', product_id=item.product_id) }}" class="text-danger position-absolute" style="top: 12px; right: 12px; font-size: 16px;" title="Remove Item">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+        {% endfor %}
+        
+        <div class="d-flex justify-content-between mt-1">
+            <a href="{{ url_for('main.shop') }}" class="btn btn-outline-maroon btn-sm py-2 px-3 d-flex align-items-center gap-1" style="font-size: 12px; border-radius: 6px;"><i class="bi bi-arrow-left"></i> Continue Shopping</a>
+        </div>
+        
+        <!-- Cart Summary -->
+        <div class="card border-0 shadow-sm p-3 rounded bg-white mt-2">
+            <h6 class="font-serif text-maroon mb-3 border-bottom pb-2 fw-bold">Order Summary</h6>
+            
+            <div class="d-flex justify-content-between mb-2 small">
+                <span class="text-muted">Subtotal</span>
+                <strong id="cart-subtotal-mobile" class="text-dark">₹{{ "%.2f"|format(subtotal) }}</strong>
+            </div>
+            
+            <div class="d-flex justify-content-between mb-2 small">
+                <span class="text-muted">Shipping</span>
+                <span class="text-success fw-bold">FREE Delivery</span>
+            </div>
+            
+            <hr class="my-2">
+            
+            <div class="d-flex justify-content-between mb-3">
+                <span class="fw-bold" style="font-size: 14px;">Total Amount</span>
+                <strong class="text-maroon fs-5" id="cart-grandtotal-mobile">₹{{ "%.2f"|format(subtotal) }}</strong>
+            </div>
+            
+            <div class="alert alert-info py-2 px-3 small border-0 mb-3" style="border-radius: 6px; font-size: 11px; line-height: 1.4;">
+                <i class="bi bi-info-circle-fill me-1"></i> Coupon discounts and shipping details will be collected at checkout.
+            </div>
+            
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('checkout.index') }}" class="btn btn-maroon w-100 py-2 fw-bold" style="height: 45px; font-size: 14px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                    Proceed to Checkout <i class="bi bi-arrow-right"></i>
+                </a>
+            {% else %}
+                <a href="{{ url_for('auth.login', next='/checkout') }}" class="btn btn-maroon w-100 py-2 fw-bold" style="height: 45px; font-size: 14px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                    Log In to Checkout <i class="bi bi-arrow-right"></i>
+                </a>
+                <p class="text-center text-muted small mt-2 mb-0" style="font-size: 10px;">Login to process secure payment via Razorpay.</p>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <!-- Empty Cart -->
+    <div class="text-center py-5 px-3 bg-white shadow-sm rounded">
+        <i class="bi bi-bag-x text-muted mb-2" style="font-size: 4rem;"></i>
+        <h6 class="font-serif text-maroon fw-bold">Your Shopping Bag is Empty</h6>
+        <p class="text-muted small mb-3">You haven't added any sarees to your cart yet.</p>
+        <a href="{{ url_for('main.shop') }}" class="btn btn-maroon btn-sm px-4 py-2" style="border-radius: 8px;">Browse Collection</a>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const getCsrfToken = () => {
+            const meta = document.querySelector('meta[name="csrf-token"]');
+            return meta ? meta.getAttribute('content') : '';
+        };
+
+        // Quantity handler for Desktop
+        const qtyInputsDesktop = document.querySelectorAll('.cart-qty-input-desktop');
+        qtyInputsDesktop.forEach(input => {
+            input.addEventListener('change', async (e) => {
+                const productId = input.getAttribute('data-product-id');
+                let quantity = parseInt(input.value);
+                const maxVal = parseInt(input.getAttribute('max'));
+                
+                if (quantity > maxVal) { quantity = maxVal; input.value = maxVal; }
+                if (quantity < 1 || isNaN(quantity)) { quantity = 1; input.value = 1; }
+                
+                const data = await updateQuantityOnServer(productId, quantity);
+                if (data && data.success) {
+                    const rowTotal = document.querySelector(`.item-total-desktop-val[data-product-id="${productId}"]`);
+                    if (rowTotal) {
+                        rowTotal.textContent = `₹${parseFloat(data.item_total).toFixed(2)}`;
+                    }
+                    syncTotals(data.subtotal);
+                }
+            });
+        });
+
+        // Quantity handler for Mobile
+        const qtyInputsMobile = document.querySelectorAll('.cart-qty-input-mobile');
+        qtyInputsMobile.forEach(input => {
+            input.addEventListener('change', async (e) => {
+                const productId = input.getAttribute('data-product-id');
+                let quantity = parseInt(input.value);
+                const maxVal = parseInt(input.getAttribute('max'));
+                
+                if (quantity > maxVal) { quantity = maxVal; input.value = maxVal; }
+                if (quantity < 1 || isNaN(quantity)) { quantity = 1; input.value = 1; }
+                
+                const data = await updateQuantityOnServer(productId, quantity);
+                if (data && data.success) {
+                    const totalValCell = document.querySelector(`.item-total-mobile-val[data-product-id="${productId}"]`);
+                    if (totalValCell) {
+                        totalValCell.textContent = `₹${parseInt(data.item_total)}`;
+                    }
+                    syncTotals(data.subtotal);
+                }
+            });
+        });
+
+        async function updateQuantityOnServer(productId, quantity) {
+            const formData = new FormData();
+            formData.append('product_id', productId);
+            formData.append('quantity', quantity);
+            
+            try {
+                const response = await fetch('/cart/update', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCsrfToken() },
+                    body: formData
+                });
+                return await response.json();
+            } catch (err) {
+                console.error(err);
+                return null;
+            }
+        }
+
+        function syncTotals(subtotal) {
+            const subtotalText = `₹${parseFloat(subtotal).toFixed(2)}`;
+            const destSub = document.getElementById('cart-subtotal-desktop');
+            const destGrand = document.getElementById('cart-grandtotal-desktop');
+            const mobSub = document.getElementById('cart-subtotal-mobile');
+            const mobGrand = document.getElementById('cart-grandtotal-mobile');
+            
+            if (destSub) destSub.textContent = subtotalText;
+            if (destGrand) destGrand.textContent = subtotalText;
+            if (mobSub) mobSub.textContent = subtotalText;
+            if (mobGrand) mobGrand.textContent = subtotalText;
+        }
+    });
+</script>
+{% endblock %}

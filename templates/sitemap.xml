@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    {% for page in pages %}
+    <url>
+        <loc>{{ page.loc }}</loc>
+        <lastmod>{{ page.lastmod }}</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>{% if page.loc == url_for('main.index', _external=True) %}1.0{% else %}0.8{% endif %}</priority>
+    </url>
+    {% endfor %}
+</urlset>

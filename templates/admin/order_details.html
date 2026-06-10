@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+
+{% block title %}Order Details | Admin | PS-TEX{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <!-- Sidebar Navigation -->
+        <div class="col-lg-3 mb-4">
+            <div class="card border-0 shadow-sm rounded bg-white overflow-hidden">
+                <div class="bg-dark text-white p-3 text-center" style="background-color: var(--color-maroon-dark) !important;">
+                    <h5 class="mb-0 font-serif text-warning"><i class="bi bi-shield-check"></i> Admin Panel</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{{ url_for('admin.dashboard') }}" class="list-group-item list-group-item-action py-3">
+                        <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                    </a>
+                    <a href="{{ url_for('admin.products') }}" class="list-group-item list-group-item-action py-3">
+                        <i class="bi bi-grid me-2"></i> Manage Products
+                    </a>
+                    <a href="{{ url_for('admin.categories') }}" class="list-group-item list-group-item-action py-3">
+                        <i class="bi bi-tags me-2"></i> Manage Categories
+                    </a>
+                    <a href="{{ url_for('admin.orders') }}" class="list-group-item list-group-item-action py-3 active text-white" style="background-color: var(--color-maroon) !important; border-color: var(--color-maroon) !important;">
+                        <i class="bi bi-cart-fill me-2 text-warning"></i> Manage Orders
+                    </a>
+                    <a href="{{ url_for('admin.customers') }}" class="list-group-item list-group-item-action py-3">
+                        <i class="bi bi-people-fill me-2"></i> Customers List
+                    </a>
+                    <a href="{{ url_for('admin.reports') }}" class="list-group-item list-group-item-action py-3">
+                        <i class="bi bi-graph-up-arrow me-2"></i> Sales Reports
+                    </a>
+                    <a href="{{ url_for('admin.settings') }}" class="list-group-item list-group-item-action py-3">
+                        <i class="bi bi-gear-fill me-2"></i> Change Credentials
+                    </a>
+                    <a href="{{ url_for('admin.logout') }}" class="list-group-item list-group-item-action py-3 text-danger">
+                        <i class="bi bi-box-arrow-right me-2"></i> Secure Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Order Details contents -->
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="display-6 font-serif text-maroon mb-0">Order: {{ order.order_number }}</h1>
+                <a href="{{ url_for('admin.orders') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back to Orders</a>
+            </div>
+            
+            <div class="row g-4">
+                <!-- Main Invoice Info -->
+                <div class="col-md-7">
+                    <!-- Saree Items -->
+                    <div class="card border-0 shadow-sm p-4 rounded bg-white mb-4">
+                        <h5 class="font-serif text-maroon mb-3 border-bottom pb-2">Ordered Saree List</h5>
+                        <div class="table-responsive">
+                            <table class="table align-middle table-sm">
+                                <thead>
+                                    <tr class="text-muted small">
+                                        <th>Saree</th>
+                                        <th class="text-center">Price</th>
+                                        <th class="text-center">Qty</th>
+                                        <th class="text-end">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in order.items %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="ratio ratio-1x1 bg-cream rounded overflow-hidden me-2" style="width: 40px; height: 40px;">
+                                                    <img src="{{ url_for('uploaded_files', filename=item.product.primary_image) }}" alt="Saree Image" class="object-fit-cover">
+                                                </div>
+                                                <div>
+                                                    <span class="small font-monospace text-maroon">{{ item.product.product_code }}</span>
+                                                    <div class="fw-bold small text-truncate" style="max-width: 150px;">{{ item.product.name }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center small">₹{{ item.price }}</td>
+                                        <td class="text-center small">{{ item.quantity }}</td>
+                                        <td class="text-end small fw-semibold">₹{{ item.price * item.quantity }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="text-end mt-3 border-top pt-2">
+                            {% if order.discount_amount > 0 %}
+                                <div class="small text-muted mb-1">Coupon Discount: -₹{{ order.discount_amount }}</div>
+                            {% endif %}
+                            <h5 class="fw-bold text-maroon mb-0">Grand Total: ₹{{ order.total_amount }}</h5>
+                        </div>
+                    </div>
+                    
+                    <!-- Billing & Shipping Address details -->
+                    <div class="card border-0 shadow-sm p-4 rounded bg-white">
+                        <h5 class="font-serif text-maroon mb-3 border-bottom pb-2">Delivery Details</h5>
+                        <div class="row g-3 small">
+                            <div class="col-sm-6">
+                                <span class="text-muted">Recipient Name:</span><br>
+                                <strong class="text-dark">{{ order.user.name }}</strong>
+                            </div>
+                            <div class="col-sm-6">
+                                <span class="text-muted">Contact Info:</span><br>
+                                <span class="text-dark">{{ order.phone }}</span><br>
+                                <span class="text-dark">{{ order.email }}</span>
+                            </div>
+                            <div class="col-12">
+                                <span class="text-muted">Shipping Address:</span><br>
+                                <span class="text-dark">{{ order.shipping_address }}</span><br>
+                                <strong class="text-dark">{{ order.city }}, {{ order.state }} - {{ order.pincode }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Status Update Column -->
+                <div class="col-md-5">
+                    <!-- Status Actions Card -->
+                    <div class="card border-0 shadow-sm p-4 rounded bg-white mb-4">
+                        <h5 class="font-serif text-maroon mb-3 border-bottom pb-2">Update Order Status</h5>
+                        
+                        <form action="{{ url_for('admin.update_order_status', order_id=order.id) }}" method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            
+                            <div class="mb-3">
+                                <label for="status" class="form-label fw-semibold">Current Status</label>
+                                <select class="form-select" id="status" name="status" required>
+                                    <option value="Pending" {% if order.order_status == 'Pending' %}selected{% endif %}>Pending</option>
+                                    <option value="Paid" {% if order.order_status == 'Paid' %}selected{% endif %}>Paid</option>
+                                    <option value="Processing" {% if order.order_status == 'Processing' %}selected{% endif %}>Processing</option>
+                                    <option value="Shipped" {% if order.order_status == 'Shipped' %}selected{% endif %}>Shipped</option>
+                                    <option value="Delivered" {% if order.order_status == 'Delivered' %}selected{% endif %}>Delivered</option>
+                                    <option value="Cancelled" {% if order.order_status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="courier_partner" class="form-label fw-semibold">Courier Partner</label>
+                                <input type="text" class="form-control" id="courier_partner" name="courier_partner" placeholder="e.g. BlueDart Express" value="{{ order.courier_partner or '' }}">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="tracking_number" class="form-label fw-semibold">Tracking Number / AWB</label>
+                                <input type="text" class="form-control" id="tracking_number" name="tracking_number" placeholder="e.g. BD987654321IN" value="{{ order.tracking_number or '' }}">
+                            </div>
+                            
+                            <button type="submit" class="btn btn-maroon w-100">Update Shipment</button>
+                        </form>
+                    </div>
+                    
+                    <!-- Transaction Status info -->
+                    <div class="card border-0 shadow-sm p-4 rounded bg-white bg-cream border-start border-maroon border-3">
+                        <h6 class="fw-bold text-maroon mb-2"><i class="bi bi-wallet2"></i> Transaction Details</h6>
+                        <div class="small">
+                            {% if order.payment %}
+                                <strong>Razorpay Payment ID:</strong><br>
+                                <span class="font-monospace text-dark">{{ order.payment.transaction_id }}</span><br>
+                                <strong>Status:</strong> <span class="text-success fw-bold">{{ order.payment.status }}</span><br>
+                                <strong>Method:</strong> {{ order.payment.payment_method or 'Razorpay' }}<br>
+                                <strong>Gateway Amount:</strong> ₹{{ order.payment.amount }}
+                            {% else %}
+                                <div class="text-muted"><i class="bi bi-info-circle"></i> No successful transaction logged for this order. Status is Pending.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

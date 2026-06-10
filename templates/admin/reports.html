@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}Sales Reports | Admin | PS-TEX{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <!-- Sidebar Navigation -->
+        <div class="col-lg-3 mb-4">
+            <div class="card border-0 shadow-sm rounded bg-white overflow-hidden">
+                <div class="bg-dark text-white p-3 text-center" style="background-color: var(--color-maroon-dark) !important;">
+                    <h5 class="mb-0 font-serif text-warning"><i class="bi bi-shield-check"></i> Admin Panel</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{{ url_for('admin.dashboard') }}" class="list-group-item list-group-item-action py-3">
+                        <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                    </a>
+                    <a href="{{ url_for('admin.products') }}" class="list-group-item list-group-item-action py-3">
+                        <i class="bi bi-grid me-2"></i> Manage Products
+                    </a>
+                    <a href="{{ url_for('admin.categories') }}" class="list-group-item list-group-item-action py-3">
+                        <i class="bi bi-tags me-2"></i> Manage Categories
+                    </a>
+                    <a href="{{ url_for('admin.orders') }}" class="list-group-item list-group-item-action py-3">
+                        <i class="bi bi-cart-fill me-2"></i> Manage Orders
+                    </a>
+                    <a href="{{ url_for('admin.customers') }}" class="list-group-item list-group-item-action py-3">
+                        <i class="bi bi-people-fill me-2"></i> Customers List
+                    </a>
+                    <a href="{{ url_for('admin.reports') }}" class="list-group-item list-group-item-action py-3 active text-white" style="background-color: var(--color-maroon) !important; border-color: var(--color-maroon) !important;">
+                        <i class="bi bi-graph-up-arrow me-2 text-warning"></i> Sales Reports
+                    </a>
+                    <a href="{{ url_for('admin.settings') }}" class="list-group-item list-group-item-action py-3">
+                        <i class="bi bi-gear-fill me-2"></i> Change Credentials
+                    </a>
+                    <a href="{{ url_for('admin.logout') }}" class="list-group-item list-group-item-action py-3 text-danger">
+                        <i class="bi bi-box-arrow-right me-2"></i> Secure Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reports contents -->
+        <div class="col-lg-9">
+            <h1 class="display-6 font-serif text-maroon mb-4">Sales & Revenue Reports</h1>
+            
+            <!-- Filter Bar -->
+            <div class="card border-0 shadow-sm p-4 rounded bg-white mb-4">
+                <form action="{{ url_for('admin.reports') }}" method="GET" class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label for="start_date" class="form-label fw-semibold">Start Date</label>
+                        <input type="date" class="form-control" id="start_date" name="start_date" value="{{ start_date }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="end_date" class="form-label fw-semibold">End Date</label>
+                        <input type="date" class="form-control" id="end_date" name="end_date" value="{{ end_date }}">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-maroon w-100 py-2"><i class="bi bi-funnel-fill me-1"></i> Filter Report</button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Summary metrics -->
+            <div class="row g-3 mb-4 text-center">
+                <div class="col-sm-6">
+                    <div class="p-4 bg-white border border-light shadow-2xs rounded">
+                        <span class="text-muted small uppercase">Paid Orders Count</span>
+                        <h2 class="fw-bold text-dark mt-1">{{ total_orders }}</h2>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="p-4 bg-white border border-light shadow-2xs rounded border-start border-gold border-3">
+                        <span class="text-muted small uppercase">Total Sales Revenue</span>
+                        <h2 class="fw-bold text-maroon mt-1">₹{{ "%.2f"|format(total_sales) }}</h2>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Table list of orders -->
+            <div class="card border-0 shadow-sm p-4 rounded bg-white">
+                <h5 class="font-serif text-maroon mb-3 border-bottom pb-2">Completed Transactions</h5>
+                
+                {% if orders %}
+                <div class="table-responsive">
+                    <table class="table align-middle table-sm">
+                        <thead>
+                            <tr class="text-muted small">
+                                <th>Order Number</th>
+                                <th>Date</th>
+                                <th>Customer</th>
+                                <th>Method</th>
+                                <th class="text-end">Paid Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                            <tr>
+                                <td><strong class="text-maroon">{{ order.order_number }}</strong></td>
+                                <td class="small text-muted">{{ order.created_at.strftime('%d %b %Y') }}</td>
+                                <td>{{ order.user.name }}</td>
+                                <td>{{ order.payment.payment_method if order.payment else 'Razorpay' }}</td>
+                                <td class="text-end fw-semibold text-dark">₹{{ "%.2f"|format(order.total_amount) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="text-end mt-3">
+                    <button onclick="window.print()" class="btn btn-sm btn-outline-maroon"><i class="bi bi-printer-fill me-1"></i> Print Report</button>
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-4">No completed transactions found in this date range.</p>
+                {% endif %}
+            </div>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

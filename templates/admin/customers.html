@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Customers | Admin | PS-TEX{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <!-- Sidebar Navigation -->
+        <div class="col-lg-3 mb-4">
+            <div class="card border-0 shadow-sm rounded bg-white overflow-hidden">
+                <div class="bg-dark text-white p-3 text-center" style="background-color: var(--color-maroon-dark) !important;">
+                    <h5 class="mb-0 font-serif text-warning"><i class="bi bi-shield-check"></i> Admin Panel</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{{ url_for('admin.dashboard') }}" class="list-group-item list-group-item-action py-3">
+                        <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                    </a>
+                    <a href="{{ url_for('admin.products') }}" class="list-group-item list-group-item-action py-3">
+                        <i class="bi bi-grid me-2"></i> Manage Products
+                    </a>
+                    <a href="{{ url_for('admin.categories') }}" class="list-group-item list-group-item-action py-3">
+                        <i class="bi bi-tags me-2"></i> Manage Categories
+                    </a>
+                    <a href="{{ url_for('admin.orders') }}" class="list-group-item list-group-item-action py-3">
+                        <i class="bi bi-cart-fill me-2"></i> Manage Orders
+                    </a>
+                    <a href="{{ url_for('admin.customers') }}" class="list-group-item list-group-item-action py-3 active text-white" style="background-color: var(--color-maroon) !important; border-color: var(--color-maroon) !important;">
+                        <i class="bi bi-people-fill me-2 text-warning"></i> Customers List
+                    </a>
+                    <a href="{{ url_for('admin.reports') }}" class="list-group-item list-group-item-action py-3">
+                        <i class="bi bi-graph-up-arrow me-2"></i> Sales Reports
+                    </a>
+                    <a href="{{ url_for('admin.settings') }}" class="list-group-item list-group-item-action py-3">
+                        <i class="bi bi-gear-fill me-2"></i> Change Credentials
+                    </a>
+                    <a href="{{ url_for('admin.logout') }}" class="list-group-item list-group-item-action py-3 text-danger">
+                        <i class="bi bi-box-arrow-right me-2"></i> Secure Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Customers list contents -->
+        <div class="col-lg-9">
+            <h1 class="display-6 font-serif text-maroon mb-4">Registered Customers</h1>
+            
+            <div class="card border-0 shadow-sm p-4 rounded bg-white">
+                {% if customers %}
+                <div class="table-responsive">
+                    <table class="table align-middle table-sm">
+                        <thead>
+                            <tr class="text-muted small uppercase">
+                                <th>Customer ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Registered Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cust in customers %}
+                            <tr>
+                                <td class="font-monospace small">#USR-{{ cust.id }}</td>
+                                <td><strong class="text-dark">{{ cust.name }}</strong></td>
+                                <td>{{ cust.email }}</td>
+                                <td>{{ cust.phone or 'N/A' }}</td>
+                                <td class="small text-muted">{{ cust.created_at.strftime('%d %b %Y, %I:%M %p') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-4">No registered customer accounts found.</p>
+                {% endif %}
+            </div>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

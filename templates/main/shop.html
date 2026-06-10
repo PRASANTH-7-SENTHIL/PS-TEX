@@ -1,0 +1,325 @@
+{% extends 'base.html' %}
+
+{% block title %}Shop Premium Sarees | PS-TEX{% endblock %}
+
+{% block content %}
+
+<!-- ==========================================
+     DESKTOP LAYOUT (min-width: 576px)
+     ========================================== -->
+<div class="desktop-only container my-5">
+    <div class="row">
+        <!-- Sidebar Filters -->
+        <div class="col-lg-3 mb-4">
+            <div class="card border-0 shadow-sm p-4 sticky-lg-top" style="top: 90px; border-radius: 8px;">
+                <h4 class="font-serif text-maroon mb-3 border-bottom pb-2">Filter Collection</h4>
+                
+                <!-- Category Filter List -->
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-2">Fabric Categories</h6>
+                    <div class="list-group list-group-flush">
+                        <a href="{{ url_for('main.shop', search=search_term, min_price=min_price, max_price=max_price, sort=sort_by) }}" class="list-group-item list-group-item-action border-0 ps-0 d-flex justify-content-between align-items-center {% if not selected_category %}fw-bold text-maroon{% endif %}">
+                            All Fabrics
+                        </a>
+                        {% for cat in categories %}
+                        <a href="{{ url_for('main.shop', category_slug=cat.slug, search=search_term, min_price=min_price, max_price=max_price, sort=sort_by) }}" class="list-group-item list-group-item-action border-0 ps-0 d-flex justify-content-between align-items-center {% if selected_category and selected_category.id == cat.id %}fw-bold text-maroon{% endif %}">
+                            {{ cat.name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Price Range Filter Form -->
+                <form action="{{ request.path }}" method="GET">
+                    {% if selected_category %}
+                        <input type="hidden" name="category" value="{{ selected_category.slug }}">
+                    {% endif %}
+                    {% if search_term %}
+                        <input type="hidden" name="search" value="{{ search_term }}">
+                    {% endif %}
+                    {% if sort_by %}
+                        <input type="hidden" name="sort" value="{{ sort_by }}">
+                    {% endif %}
+                    
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-2">Price Range (₹)</h6>
+                        <div class="row g-2 align-items-center">
+                            <div class="col">
+                                <input type="number" class="form-control form-control-sm" name="min_price" placeholder="Min" value="{{ min_price or '' }}">
+                            </div>
+                            <div class="col-auto text-muted">-</div>
+                            <div class="col">
+                                <input type="number" class="form-control form-control-sm" name="max_price" placeholder="Max" value="{{ max_price or '' }}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-maroon w-100 btn-sm py-2">Apply Filters</button>
+                    {% if min_price or max_price or search_term or selected_category %}
+                        <a href="{{ url_for('main.shop') }}" class="btn btn-outline-secondary w-100 btn-sm py-2 mt-2">Clear All</a>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+        
+        <!-- Products Grid -->
+        <div class="col-lg-9">
+            <!-- Shop Header Controls -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 bg-white p-3 shadow-sm rounded">
+                <div class="text-muted">
+                    {% if search_term %}
+                        Showing results for "<strong class="text-maroon">{{ search_term }}</strong>" |
+                    {% endif %}
+                    {% if selected_category %}
+                        Category: <strong class="text-maroon">{{ selected_category.name }}</strong> |
+                    {% endif %}
+                    Found <strong class="text-dark">{{ products|length }}</strong> sarees
+                </div>
+                
+                <!-- Sorting Dropdown -->
+                <div class="d-flex align-items-center mt-2 mt-sm-0">
+                    <span class="text-muted me-2 small text-nowrap">Sort By:</span>
+                    <select class="form-select form-select-sm" style="width: 160px;" onchange="location = this.value;">
+                        <option value="{{ url_for('main.shop', category_slug=selected_category.slug if selected_category else None, search=search_term, min_price=min_price, max_price=max_price, sort='newest') }}" {% if sort_by == 'newest' %}selected{% endif %}>Newest Arrivals</option>
+                        <option value="{{ url_for('main.shop', category_slug=selected_category.slug if selected_category else None, search=search_term, min_price=min_price, max_price=max_price, sort='price_low') }}" {% if sort_by == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                        <option value="{{ url_for('main.shop', category_slug=selected_category.slug if selected_category else None, search=search_term, min_price=min_price, max_price=max_price, sort='price_high') }}" {% if sort_by == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+                        <option value="{{ url_for('main.shop', category_slug=selected_category.slug if selected_category else None, search=search_term, min_price=min_price, max_price=max_price, sort='popular') }}" {% if sort_by == 'popular' %}selected{% endif %}>Popularity</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Products Grid List -->
+            {% if products %}
+            <div class="row g-4">
+                {% for prod in products %}
+                <div class="col-md-4 col-sm-6">
+                    <div class="product-card h-100 d-flex flex-column justify-content-between">
+                        <!-- Wishlist Button -->
+                        {% if current_user.is_authenticated and not is_admin_session %}
+                            <button class="btn-wishlist btn-wishlist-ajax" data-product-id="{{ prod.id }}" title="Add to Wishlist">
+                                <i class="bi bi-heart"></i>
+                            </button>
+                        {% endif %}
+                        
+                        {% if prod.discount_price %}
+                            <span class="badge-discount">SAVE {{ (((prod.price - prod.discount_price)/prod.price)*100)|int }}%</span>
+                        {% endif %}
+                        
+                        <div>
+                            <div class="img-wrapper">
+                                <a href="{{ url_for('main.product_detail', slug=prod.slug) }}">
+                                    {% if prod.images %}
+                                        <img src="{{ url_for('uploaded_files', filename=prod.primary_image) }}" alt="{{ prod.name }}">
+                                    {% else %}
+                                        <img src="{{ url_for('static', filename='images/placeholder.svg') }}" alt="{{ prod.name }}">
+                                    {% endif %}
+                                </a>
+                            </div>
+                            
+                            <div class="card-body pb-0">
+                                <div class="category">{{ prod.category.name }}</div>
+                                <a href="{{ url_for('main.product_detail', slug=prod.slug) }}" class="title" title="{{ prod.name }}">{{ prod.name }}</a>
+                                <div class="price-box">
+                                    {% if prod.discount_price %}
+                                        <span class="original-price">₹{{ prod.price }}</span>
+                                        <span class="price {% if prod.stock_quantity > 0 %}price-in-stock{% else %}price-out-of-stock{% endif %}">₹{{ prod.discount_price }}</span>
+                                    {% else %}
+                                        <span class="price {% if prod.stock_quantity > 0 %}price-in-stock{% else %}price-out-of-stock{% endif %}">₹{{ prod.price }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card-body pt-0">
+                            <!-- Add to Cart -->
+                            <form class="add-to-cart-form mt-2">
+                                <input type="hidden" name="product_id" value="{{ prod.id }}">
+                                <input type="hidden" name="quantity" value="1">
+                                {% if prod.stock_quantity > 0 %}
+                                    <button type="submit" class="btn btn-maroon w-100 btn-sm py-2">
+                                        <i class="bi bi-bag-plus me-2"></i> Add to Cart
+                                    </button>
+                                {% else %}
+                                    <button class="btn btn-secondary w-100 btn-sm py-2" disabled>Out of Stock</button>
+                                {% endif %}
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <!-- No Products Found Message -->
+            <div class="text-center py-5 bg-white shadow-sm rounded">
+                <i class="bi bi-search-heart text-maroon mb-3" style="font-size: 5rem;"></i>
+                <h3 class="font-serif">No Sarees Found</h3>
+                <p class="text-muted">We couldn't find any sarees matching your search criteria. Try removing filters or search terms.</p>
+                <a href="{{ url_for('main.shop') }}" class="btn btn-maroon mt-3">Reset Search</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+
+<!-- ==========================================
+     MOBILE LAYOUT (max-width: 575px)
+     ========================================== -->
+<div class="mobile-only">
+    <!-- Collapsible Filter/Sort Panel (Flipkart mobile style) -->
+    <div class="bg-white border-bottom d-flex align-items-center" style="position: sticky; top: 110px; z-index: 1010; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+        <button class="btn flex-grow-1 border-end rounded-0 py-2 d-flex align-items-center justify-content-center text-maroon" type="button" data-bs-toggle="collapse" data-bs-target="#shopFilterCollapse" aria-expanded="false" aria-controls="shopFilterCollapse" style="font-size: 13px; font-weight: 600;">
+            <i class="bi bi-funnel-fill me-1"></i> Filter Fabrics
+        </button>
+        <div class="flex-grow-1 d-flex align-items-center justify-content-center position-relative">
+            <i class="bi bi-sort-down text-maroon position-absolute" style="left: 15px; pointer-events: none; font-size: 15px;"></i>
+            <select class="form-select border-0 rounded-0 py-2 shadow-none text-center text-maroon" style="font-size: 13px; font-weight: 600; cursor: pointer; padding-left: 25px;" onchange="location = this.value;">
+                <option value="{{ url_for('main.shop', category_slug=selected_category.slug if selected_category else None, search=search_term, min_price=min_price, max_price=max_price, sort='newest') }}" {% if sort_by == 'newest' %}selected{% endif %}>Sort: Newest</option>
+                <option value="{{ url_for('main.shop', category_slug=selected_category.slug if selected_category else None, search=search_term, min_price=min_price, max_price=max_price, sort='price_low') }}" {% if sort_by == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                <option value="{{ url_for('main.shop', category_slug=selected_category.slug if selected_category else None, search=search_term, min_price=min_price, max_price=max_price, sort='price_high') }}" {% if sort_by == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+                <option value="{{ url_for('main.shop', category_slug=selected_category.slug if selected_category else None, search=search_term, min_price=min_price, max_price=max_price, sort='popular') }}" {% if sort_by == 'popular' %}selected{% endif %}>Popularity</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Collapsible Filter Panel Form -->
+    <div class="collapse bg-light border-bottom p-3" id="shopFilterCollapse">
+        <h6 class="fw-bold text-maroon mb-2"><i class="bi bi-filter-circle"></i> Filter Options</h6>
+        
+        <!-- Category Filter List -->
+        <div class="mb-3">
+            <label class="form-label small fw-bold">Select Fabric</label>
+            <div class="d-flex flex-wrap gap-1">
+                <a href="{{ url_for('main.shop', search=search_term, min_price=min_price, max_price=max_price, sort=sort_by) }}" class="btn btn-sm {% if not selected_category %}btn-maroon{% else %}btn-outline-secondary{% endif %}" style="font-size: 11px; border-radius: 20px;">
+                    All Fabrics
+                </a>
+                {% for cat in categories %}
+                <a href="{{ url_for('main.shop', category_slug=cat.slug, search=search_term, min_price=min_price, max_price=max_price, sort=sort_by) }}" class="btn btn-sm {% if selected_category and selected_category.id == cat.id %}btn-maroon{% else %}btn-outline-secondary{% endif %}" style="font-size: 11px; border-radius: 20px;">
+                    {{ cat.name }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Price Range Filter Form -->
+        <form action="{{ request.path }}" method="GET">
+            {% if selected_category %}
+                <input type="hidden" name="category" value="{{ selected_category.slug }}">
+            {% endif %}
+            {% if search_term %}
+                <input type="hidden" name="search" value="{{ search_term }}">
+            {% endif %}
+            {% if sort_by %}
+                <input type="hidden" name="sort" value="{{ sort_by }}">
+            {% endif %}
+            
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Price Range (₹)</label>
+                <div class="row g-2 align-items-center">
+                    <div class="col">
+                        <input type="number" class="form-control form-control-sm border-secondary" name="min_price" placeholder="Min" value="{{ min_price or '' }}">
+                    </div>
+                    <div class="col-auto text-muted small">to</div>
+                    <div class="col">
+                        <input type="number" class="form-control form-control-sm border-secondary" name="max_price" placeholder="Max" value="{{ max_price or '' }}">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-maroon btn-sm py-2 flex-grow-1" style="font-size: 12px; border-radius: 8px;">Apply Filters</button>
+                {% if min_price or max_price or search_term or selected_category %}
+                    <a href="{{ url_for('main.shop') }}" class="btn btn-outline-secondary btn-sm py-2 flex-grow-1 d-flex align-items-center justify-content-center" style="font-size: 12px; border-radius: 8px;">Clear All</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Active Filter Description Info -->
+    <div class="px-3 py-2 bg-light border-bottom text-muted" style="font-size: 11px;">
+        {% if search_term %}
+            Search: "<strong class="text-maroon">{{ search_term }}</strong>" |
+        {% endif %}
+        {% if selected_category %}
+            Fabric: <strong class="text-maroon">{{ selected_category.name }}</strong> |
+        {% endif %}
+        Found <strong class="text-dark">{{ products|length }}</strong> sarees
+    </div>
+
+    <!-- Shop Page Products List -->
+    <div class="mobile-product-grid">
+        {% if products %}
+            {% for prod in products %}
+            <div class="product-card">
+                <div class="position-relative">
+                    <!-- Wishlist Button -->
+                    {% if current_user.is_authenticated and not is_admin_session %}
+                        <button class="btn-wishlist btn-wishlist-ajax" data-product-id="{{ prod.id }}" title="Add to Wishlist">
+                            <i class="bi bi-heart"></i>
+                        </button>
+                    {% endif %}
+                    
+                    {% if prod.discount_price %}
+                        <span class="badge-discount" style="font-size: 10px; padding: 2px 6px;">SAVE {{ (((prod.price - prod.discount_price)/prod.price)*100)|int }}%</span>
+                    {% endif %}
+                    
+                    <!-- 4:5 Aspect Ratio Image Wrapper -->
+                    <div class="img-wrapper">
+                        <a href="{{ url_for('main.product_detail', slug=prod.slug) }}">
+                            {% if prod.images %}
+                                <img src="{{ url_for('uploaded_files', filename=prod.primary_image) }}" alt="{{ prod.name }}" loading="lazy">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='images/placeholder.svg') }}" alt="{{ prod.name }}" loading="lazy">
+                            {% endif %}
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-info">
+                    <div>
+                        <!-- Category Name Uppercase (12px) -->
+                        <div class="category">{{ prod.category.name }}</div>
+                        <!-- Product Name (16px) -->
+                        <a href="{{ url_for('main.product_detail', slug=prod.slug) }}" class="title" title="{{ prod.name }}">{{ prod.name }}</a>
+                    </div>
+                    
+                    <div>
+                        <!-- Price Box (20px bold price) -->
+                        <div class="price-section">
+                            {% if prod.discount_price %}
+                                <span class="price {% if prod.stock_quantity > 0 %}price-in-stock{% else %}price-out-of-stock{% endif %}">₹{{ prod.discount_price|int }}</span>
+                                <span class="original-price">₹{{ prod.price|int }}</span>
+                                <span class="discount-text">{{ (((prod.price - prod.discount_price)/prod.price)*100)|int }}% OFF</span>
+                            {% else %}
+                                <span class="price {% if prod.stock_quantity > 0 %}price-in-stock{% else %}price-out-of-stock{% endif %}">₹{{ prod.price|int }}</span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Add to Cart Button (Maroon, Full Width, Height 45px, text 14px) -->
+                        <form class="add-to-cart-form">
+                            <input type="hidden" name="product_id" value="{{ prod.id }}">
+                            <input type="hidden" name="quantity" value="1">
+                            {% if prod.stock_quantity > 0 %}
+                                <button type="submit" class="btn-add-cart">
+                                    <i class="bi bi-bag-plus me-1"></i> Add to Cart
+                                </button>
+                            {% else %}
+                                <button class="btn-add-cart bg-secondary text-white" disabled>Out of Stock</button>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <!-- No Products Found -->
+            <div class="text-center py-5 px-3 bg-white w-100">
+                <i class="bi bi-search-heart text-maroon mb-2" style="font-size: 4rem;"></i>
+                <h5 class="font-serif">No Sarees Found</h5>
+                <p class="text-muted small">Try modifying your filter options or removing search terms.</p>
+                <a href="{{ url_for('main.shop') }}" class="btn btn-maroon btn-sm px-4 py-2 mt-2" style="border-radius: 8px;">Reset Filters</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

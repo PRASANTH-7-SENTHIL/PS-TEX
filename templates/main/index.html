@@ -1,0 +1,548 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<!-- ==========================================
+     DESKTOP LAYOUT (min-width: 576px)
+     ========================================== -->
+<div class="desktop-only">
+    {% if banners %}
+    <!-- Hero Banner Carousel -->
+    <div id="desktopHeroCarousel" class="carousel slide carousel-fade hero-carousel" data-bs-ride="carousel" data-bs-interval="5000">
+        <div class="carousel-indicators">
+            {% for banner in banners %}
+            <button type="button" data-bs-target="#desktopHeroCarousel" data-bs-slide-to="{{ loop.index0 }}" {% if loop.first %}class="active" aria-current="true"{% endif %} aria-label="Slide {{ loop.index }}"></button>
+            {% endfor %}
+        </div>
+        <div class="carousel-inner">
+            {% for banner in banners %}
+            <div class="carousel-item {% if loop.first %}active{% endif %}">
+                {% if banner.category %}
+                <a href="{{ url_for('main.shop', category_slug=banner.category.slug) }}" class="text-decoration-none d-block">
+                {% endif %}
+                <div class="hero-slide" style="background: url('{{ url_for('uploaded_files', filename=banner.image_path) }}') center/cover no-repeat;">
+                    <div class="container py-5">
+                        <div class="hero-card-overlay">
+                            {% if banner.title %}
+                            <h1>{{ banner.title }}</h1>
+                            {% endif %}
+                            {% if banner.subtitle %}
+                            <p>{{ banner.subtitle }}</p>
+                            {% endif %}
+                            {% if banner.category %}
+                            <span class="btn btn-maroon btn-lg px-5 py-3 shadow d-inline-block">Explore {{ banner.category.name }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% if banner.category %}
+                </a>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#desktopHeroCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#desktopHeroCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+    {% endif %}
+
+    <!-- Features Grid -->
+    <div class="container my-5 text-center">
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="p-3">
+                    <i class="bi bi-award fs-1 text-maroon mb-2"></i>
+                    <h5 class="fw-bold">100% Authentic Handloom</h5>
+                    <p class="small text-muted">Direct certification and silk mark support.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3">
+                    <i class="bi bi-truck fs-1 text-maroon mb-2"></i>
+                    <h5 class="fw-bold">Free Worldwide Shipping</h5>
+                    <p class="small text-muted">Free delivery in India, express worldwide shipping.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3">
+                    <i class="bi bi-gem fs-1 text-maroon mb-2"></i>
+                    <h5 class="fw-bold">Traditional Artistry</h5>
+                    <p class="small text-muted">Sourced directly from weavers of Kanchipuram and Varanasi.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3">
+                    <i class="bi bi-shield-check fs-1 text-maroon mb-2"></i>
+                    <h5 class="fw-bold">Secured Payments</h5>
+                    <p class="small text-muted">100% safe checkout powered by Razorpay.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Grid -->
+    <div class="container my-5">
+        <div class="text-center">
+            <h2 class="display-5 font-serif text-maroon">Heritage Collections</h2>
+            <p class="text-muted">Browse our premium sarees categorised by regional weave and fabrics</p>
+            <div class="traditional-divider">
+                <i class="bi bi-flower1"></i>
+            </div>
+        </div>
+        
+        <div class="row g-4 mt-2">
+            {% for cat in categories %}
+            <div class="col-lg-3 col-md-6">
+                <div class="card border-0 shadow-sm h-100 overflow-hidden text-center position-relative" style="border-radius: 8px;">
+                    <div class="ratio ratio-1x1 bg-cream">
+                        {% if cat.image_path %}
+                            <img src="{{ url_for('uploaded_files', filename=cat.image_path) }}" alt="{{ cat.name }}" class="object-fit-cover w-100 h-100 transition-all hover-zoom">
+                        {% else %}
+                            <div class="d-flex align-items-center justify-content-center p-4">
+                                <i class="bi bi-palette2 text-maroon" style="font-size: 4rem;"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-body bg-white py-3">
+                        <h5 class="card-title font-serif text-maroon mb-2">{{ cat.name }}</h5>
+                        <p class="card-text small text-muted text-truncate px-2">{{ cat.description }}</p>
+                        <a href="{{ url_for('main.shop', category_slug=cat.slug) }}" class="btn btn-outline-maroon btn-sm mt-2">View Sarees</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- New Arrivals -->
+    <div class="container my-5">
+        <div class="text-center">
+            <h2 class="display-5 font-serif text-maroon">New Arrivals</h2>
+            <p class="text-muted">The latest handloom additions to our boutique</p>
+            <div class="traditional-divider">
+                <i class="bi bi-flower1"></i>
+            </div>
+        </div>
+        
+        <div class="row g-4 mt-2">
+            {% for prod in new_arrivals %}
+            <div class="col-lg-3 col-md-6">
+                <div class="product-card h-100 d-flex flex-column justify-content-between">
+                    <!-- Wishlist Button -->
+                    {% if current_user.is_authenticated and not is_admin_session %}
+                        <button class="btn-wishlist btn-wishlist-ajax" data-product-id="{{ prod.id }}" title="Add to Wishlist">
+                            <i class="bi bi-heart"></i>
+                        </button>
+                    {% endif %}
+                    
+                    {% if prod.discount_price %}
+                        <span class="badge-discount">SAVE {{ (((prod.price - prod.discount_price)/prod.price)*100)|int }}%</span>
+                    {% endif %}
+                    
+                    <div>
+                        <div class="img-wrapper">
+                            <a href="{{ url_for('main.product_detail', slug=prod.slug) }}">
+                                {% if prod.images %}
+                                    <img src="{{ url_for('uploaded_files', filename=prod.primary_image) }}" alt="{{ prod.name }}">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='images/placeholder.svg') }}" alt="{{ prod.name }}">
+                                {% endif %}
+                            </a>
+                        </div>
+                        
+                        <div class="card-body pb-0">
+                            <div class="category">{{ prod.category.name }}</div>
+                            <a href="{{ url_for('main.product_detail', slug=prod.slug) }}" class="title">{{ prod.name }}</a>
+                            
+                            <div class="price-box">
+                                {% if prod.discount_price %}
+                                    <span class="original-price">₹{{ prod.price }}</span>
+                                    <span class="price {% if prod.stock_quantity > 0 %}price-in-stock{% else %}price-out-of-stock{% endif %}">₹{{ prod.discount_price }}</span>
+                                {% else %}
+                                    <span class="price {% if prod.stock_quantity > 0 %}price-in-stock{% else %}price-out-of-stock{% endif %}">₹{{ prod.price }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body pt-0">
+                        <!-- Form for Add to Cart -->
+                        <form class="add-to-cart-form mt-2">
+                            <input type="hidden" name="product_id" value="{{ prod.id }}">
+                            <input type="hidden" name="quantity" value="1">
+                            {% if prod.stock_quantity > 0 %}
+                                <button type="submit" class="btn btn-maroon w-100 btn-sm py-2">
+                                    <i class="bi bi-bag-plus me-2"></i> Add to Cart
+                                </button>
+                            {% else %}
+                                <button class="btn btn-secondary w-100 btn-sm py-2" disabled>Out of Stock</button>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Promotional Banner -->
+    <section class="bg-maroon py-5 text-white my-5 border-top border-bottom border-gold border-3">
+        <div class="container text-center py-4">
+            <h3 class="font-serif text-warning mb-3">Premium Handspun Silk Experience</h3>
+            <p class="lead mx-auto mb-4" style="max-width: 800px;">Every single saree at PS-TEX tells a story of dedicated craft and tradition. We verify all sarees for pure zari details and high-quality weave indexes.</p>
+            <a href="{{ url_for('main.about') }}" class="btn btn-outline-light px-4 py-2">Read Our Story</a>
+        </div>
+    </section>
+
+    <!-- Special Discount Offers -->
+    {% if special_offers %}
+    <div class="container my-5">
+        <div class="text-center">
+            <h2 class="display-5 font-serif text-maroon">Special Offers</h2>
+            <p class="text-muted">Exclusive handloom items with seasonal discounts</p>
+            <div class="traditional-divider">
+                <i class="bi bi-flower1"></i>
+            </div>
+        </div>
+        
+        <div class="row g-4 mt-2">
+            {% for prod in special_offers %}
+            <div class="col-lg-3 col-md-6">
+                <div class="product-card h-100 d-flex flex-column justify-content-between">
+                    <!-- Wishlist Button -->
+                    {% if current_user.is_authenticated and not is_admin_session %}
+                        <button class="btn-wishlist btn-wishlist-ajax" data-product-id="{{ prod.id }}" title="Add to Wishlist">
+                            <i class="bi bi-heart"></i>
+                        </button>
+                    {% endif %}
+                    
+                    <span class="badge-discount">SAVE {{ (((prod.price - prod.discount_price)/prod.price)*100)|int }}%</span>
+                    
+                    <div>
+                        <div class="img-wrapper">
+                            <a href="{{ url_for('main.product_detail', slug=prod.slug) }}">
+                                {% if prod.images %}
+                                    <img src="{{ url_for('uploaded_files', filename=prod.primary_image) }}" alt="{{ prod.name }}">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='images/placeholder.svg') }}" alt="{{ prod.name }}">
+                                {% endif %}
+                            </a>
+                        </div>
+                        
+                        <div class="card-body pb-0">
+                            <div class="category">{{ prod.category.name }}</div>
+                            <a href="{{ url_for('main.product_detail', slug=prod.slug) }}" class="title">{{ prod.name }}</a>
+                            
+                            <div class="price-box">
+                                <span class="original-price">₹{{ prod.price }}</span>
+                                <span class="price {% if prod.stock_quantity > 0 %}price-in-stock{% else %}price-out-of-stock{% endif %}">₹{{ prod.discount_price }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body pt-0">
+                        <form class="add-to-cart-form mt-2">
+                            <input type="hidden" name="product_id" value="{{ prod.id }}">
+                            <input type="hidden" name="quantity" value="1">
+                            {% if prod.stock_quantity > 0 %}
+                                <button type="submit" class="btn btn-maroon w-100 btn-sm py-2">
+                                    <i class="bi bi-bag-plus me-2"></i> Add to Cart
+                                </button>
+                            {% else %}
+                                <button class="btn btn-secondary w-100 btn-sm py-2" disabled>Out of Stock</button>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+
+<!-- ==========================================
+     MOBILE LAYOUT (max-width: 575px)
+     ========================================== -->
+<div class="mobile-only">
+    <!-- Categories Horizontal Scroll (Flipkart style) -->
+    <div class="bg-white py-3 border-bottom overflow-auto" style="white-space: nowrap; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
+        <div class="d-flex px-3">
+            {% for cat in categories %}
+            <a href="{{ url_for('main.shop', category_slug=cat.slug) }}" class="text-decoration-none text-center d-inline-block me-3" style="width: 75px; flex-shrink: 0;">
+                <div class="rounded-circle bg-cream border border-gold d-flex align-items-center justify-content-center mx-auto mb-1 overflow-hidden" style="width: 55px; height: 55px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                    {% if cat.icon_path or cat.image_path %}
+                        <img src="{{ url_for('uploaded_files', filename=cat.icon_path or cat.image_path) }}" alt="{{ cat.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                        <i class="bi bi-palette2 text-maroon fs-5"></i>
+                    {% endif %}
+                </div>
+                <div class="text-dark font-weight-bold text-truncate" style="font-size: 11px;">{{ cat.name.split(' ')[0] }}</div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if banners %}
+    <!-- Hero Banner Carousel (Compact for Mobile) -->
+    <div id="mobileHeroCarousel" class="carousel slide carousel-fade hero-carousel-mobile" data-bs-ride="carousel" data-bs-interval="4000">
+        <div class="carousel-indicators" style="bottom: 110px; z-index: 15;">
+            {% for banner in banners %}
+            <button type="button" data-bs-target="#mobileHeroCarousel" data-bs-slide-to="{{ loop.index0 }}" {% if loop.first %}class="active" aria-current="true"{% endif %} aria-label="Slide {{ loop.index }}"></button>
+            {% endfor %}
+        </div>
+        <div class="carousel-inner">
+            {% for banner in banners %}
+            <div class="carousel-item {% if loop.first %}active{% endif %}">
+                {% if banner.category %}
+                <a href="{{ url_for('main.shop', category_slug=banner.category.slug) }}" class="text-decoration-none d-block">
+                {% endif %}
+                <div class="mobile-hero-img-wrapper" style="width: 100%; height: 260px; overflow: hidden; position: relative;">
+                    <img src="{{ url_for('uploaded_files', filename=banner.image_path) }}" class="d-block w-100 h-100" style="object-fit: cover;">
+                </div>
+                <div class="bg-cream p-3 text-center border-bottom border-gold text-dark" style="min-height: 120px;">
+                    {% if banner.title %}
+                    <h3 class="font-serif text-maroon mb-1" style="font-size: 1.3rem;">{{ banner.title }}</h3>
+                    {% endif %}
+                    {% if banner.subtitle %}
+                    <p class="text-muted mb-2" style="font-size: 0.75rem; line-height: 1.3;">{{ banner.subtitle }}</p>
+                    {% endif %}
+                    {% if banner.category %}
+                    <span class="btn btn-gold btn-sm px-4 py-1.5 shadow-sm text-uppercase fw-bold" style="font-size: 10px; letter-spacing: 0.5px;">Shop {{ banner.category.name.split(' ')[0] }}</span>
+                    {% endif %}
+                </div>
+                {% if banner.category %}
+                </a>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Features Horizontal Scroll (App-style) -->
+    <div class="bg-light border-bottom overflow-auto py-2" style="white-space: nowrap; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
+        <div class="d-flex px-3">
+            <div class="d-inline-flex align-items-center bg-white rounded border px-3 py-2 me-2" style="min-width: 170px; flex-shrink: 0;">
+                <i class="bi bi-award fs-5 text-maroon me-2"></i>
+                <div>
+                    <div class="fw-bold" style="font-size: 11px;">100% Authentic</div>
+                    <div class="text-muted" style="font-size: 9px;">Silk Mark Support</div>
+                </div>
+            </div>
+            <div class="d-inline-flex align-items-center bg-white rounded border px-3 py-2 me-2" style="min-width: 170px; flex-shrink: 0;">
+                <i class="bi bi-truck fs-5 text-maroon me-2"></i>
+                <div>
+                    <div class="fw-bold" style="font-size: 11px;">Free Shipping</div>
+                    <div class="text-muted" style="font-size: 9px;">Everywhere in India</div>
+                </div>
+            </div>
+            <div class="d-inline-flex align-items-center bg-white rounded border px-3 py-2 me-2" style="min-width: 170px; flex-shrink: 0;">
+                <i class="bi bi-gem fs-5 text-maroon me-2"></i>
+                <div>
+                    <div class="fw-bold" style="font-size: 11px;">Traditional Art</div>
+                    <div class="text-muted" style="font-size: 9px;">Direct Weaver Sourced</div>
+                </div>
+            </div>
+            <div class="d-inline-flex align-items-center bg-white rounded border px-3 py-2" style="min-width: 170px; flex-shrink: 0;">
+                <i class="bi bi-shield-check fs-5 text-maroon me-2"></i>
+                <div>
+                    <div class="fw-bold" style="font-size: 11px;">Secured Pay</div>
+                    <div class="text-muted" style="font-size: 9px;">Razorpay Secured</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Heritage Collections Section -->
+    <div class="px-3 mt-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="font-serif text-maroon mb-0 fw-bold">Heritage Collections</h5>
+            <a href="{{ url_for('main.shop') }}" class="text-maroon text-decoration-none fw-bold" style="font-size: 12px;">View All <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="text-muted" style="font-size: 11px;">Pure fabrics by regional weavers</div>
+    </div>
+
+    <div class="overflow-auto py-2" style="white-space: nowrap; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
+        <div class="d-flex px-3">
+            {% for cat in categories %}
+            <div class="card border-0 shadow-sm overflow-hidden text-center me-3" style="width: 140px; border-radius: 8px; flex-shrink: 0; background: #fff;">
+                <div class="bg-cream" style="width: 140px; height: 140px; overflow: hidden; position: relative;">
+                    {% if cat.image_path %}
+                        <img src="{{ url_for('uploaded_files', filename=cat.image_path) }}" alt="{{ cat.name }}" class="w-100 h-100 object-fit-cover" loading="lazy">
+                    {% else %}
+                        <div class="w-100 h-100 d-flex align-items-center justify-content-center">
+                            <i class="bi bi-palette2 text-maroon fs-2"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-body p-2">
+                    <div class="font-serif text-maroon fw-bold text-truncate" style="font-size: 12px; margin-bottom: 2px;">{{ cat.name }}</div>
+                    <a href="{{ url_for('main.shop', category_slug=cat.slug) }}" class="btn btn-outline-maroon btn-sm py-1 px-2 mt-1" style="font-size: 10px; border-radius: 4px;">Explore</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- New Arrivals (Flipkart-style 2-column Grid) -->
+    <div class="px-3 mt-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="font-serif text-maroon mb-0 fw-bold">New Arrivals</h5>
+            <a href="{{ url_for('main.shop') }}" class="text-maroon text-decoration-none fw-bold" style="font-size: 12px;">See More <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="text-muted" style="font-size: 11px;">Latest handloom additions to our boutique</div>
+    </div>
+
+    <div class="mobile-product-grid">
+        {% for prod in new_arrivals %}
+        <div class="product-card">
+            <div class="position-relative">
+                <!-- Wishlist Button -->
+                {% if current_user.is_authenticated and not is_admin_session %}
+                    <button class="btn-wishlist btn-wishlist-ajax" data-product-id="{{ prod.id }}" title="Add to Wishlist">
+                        <i class="bi bi-heart"></i>
+                    </button>
+                {% endif %}
+                
+                {% if prod.discount_price %}
+                    <span class="badge-discount" style="font-size: 10px; padding: 2px 6px;">SAVE {{ (((prod.price - prod.discount_price)/prod.price)*100)|int }}%</span>
+                {% endif %}
+                
+                <!-- 4:5 Aspect Ratio Image -->
+                <div class="img-wrapper">
+                    <a href="{{ url_for('main.product_detail', slug=prod.slug) }}">
+                        {% if prod.images %}
+                            <img src="{{ url_for('uploaded_files', filename=prod.primary_image) }}" alt="{{ prod.name }}" loading="lazy">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='images/placeholder.svg') }}" alt="{{ prod.name }}" loading="lazy">
+                        {% endif %}
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card-info">
+                <div>
+                    <!-- Category Name Uppercase (12px) -->
+                    <div class="category">{{ prod.category.name }}</div>
+                    <!-- Product Name (16px) -->
+                    <a href="{{ url_for('main.product_detail', slug=prod.slug) }}" class="title" title="{{ prod.name }}">{{ prod.name }}</a>
+                </div>
+                
+                <div>
+                    <!-- Price Box (20px bold price) -->
+                    <div class="price-section">
+                        {% if prod.discount_price %}
+                            <span class="price {% if prod.stock_quantity > 0 %}price-in-stock{% else %}price-out-of-stock{% endif %}">₹{{ prod.discount_price|int }}</span>
+                            <span class="original-price">₹{{ prod.price|int }}</span>
+                            <span class="discount-text">{{ (((prod.price - prod.discount_price)/prod.price)*100)|int }}% OFF</span>
+                        {% else %}
+                            <span class="price {% if prod.stock_quantity > 0 %}price-in-stock{% else %}price-out-of-stock{% endif %}">₹{{ prod.price|int }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Add to Cart Form (Maroon, Full Width, Height 45px, text 14px) -->
+                    <form class="add-to-cart-form mt-1">
+                        <input type="hidden" name="product_id" value="{{ prod.id }}">
+                        <input type="hidden" name="quantity" value="1">
+                        {% if prod.stock_quantity > 0 %}
+                            <button type="submit" class="btn-add-cart">
+                                <i class="bi bi-bag-plus me-1"></i> Add to Cart
+                            </button>
+                        {% else %}
+                            <button class="btn-add-cart bg-secondary text-white" disabled>Out of Stock</button>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Promotional Section (Compact) -->
+    <section class="bg-maroon py-4 text-white my-4 border-top border-bottom border-gold border-2 text-center">
+        <div class="px-3">
+            <h5 class="font-serif text-warning mb-1 fw-bold">Pure Handspun Silk Experience</h5>
+            <p class="small mb-0" style="font-size: 0.8rem; opacity: 0.9;">Each saree tells a story of authentic weave indexes and certified purity.</p>
+        </div>
+    </section>
+
+    <!-- Special Offers (Flipkart-style 2-column Grid) -->
+    {% if special_offers %}
+    <div class="px-3 mt-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="font-serif text-maroon mb-0 fw-bold">Special Offers</h5>
+            <a href="{{ url_for('main.shop') }}" class="text-maroon text-decoration-none fw-bold" style="font-size: 12px;">See All <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="text-muted" style="font-size: 11px;">Exclusive handloom items with seasonal discounts</div>
+    </div>
+
+    <div class="mobile-product-grid mb-3">
+        {% for prod in special_offers %}
+        <div class="product-card">
+            <div class="position-relative">
+                <!-- Wishlist Button -->
+                {% if current_user.is_authenticated and not is_admin_session %}
+                    <button class="btn-wishlist btn-wishlist-ajax" data-product-id="{{ prod.id }}" title="Add to Wishlist">
+                        <i class="bi bi-heart"></i>
+                    </button>
+                {% endif %}
+                
+                <span class="badge-discount" style="font-size: 10px; padding: 2px 6px;">SAVE {{ (((prod.price - prod.discount_price)/prod.price)*100)|int }}%</span>
+                
+                <!-- 4:5 Aspect Ratio Image -->
+                <div class="img-wrapper">
+                    <a href="{{ url_for('main.product_detail', slug=prod.slug) }}">
+                        {% if prod.images %}
+                            <img src="{{ url_for('uploaded_files', filename=prod.primary_image) }}" alt="{{ prod.name }}" loading="lazy">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='images/placeholder.svg') }}" alt="{{ prod.name }}" loading="lazy">
+                        {% endif %}
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card-info">
+                <div>
+                    <!-- Category Name Uppercase (12px) -->
+                    <div class="category">{{ prod.category.name }}</div>
+                    <!-- Product Name (16px) -->
+                    <a href="{{ url_for('main.product_detail', slug=prod.slug) }}" class="title" title="{{ prod.name }}">{{ prod.name }}</a>
+                </div>
+                
+                <div>
+                    <!-- Price Box (20px bold price) -->
+                    <div class="price-section">
+                        <span class="price {% if prod.stock_quantity > 0 %}price-in-stock{% else %}price-out-of-stock{% endif %}">₹{{ prod.discount_price|int }}</span>
+                        <span class="original-price">₹{{ prod.price|int }}</span>
+                        <span class="discount-text">{{ (((prod.price - prod.discount_price)/prod.price)*100)|int }}% OFF</span>
+                    </div>
+                    
+                    <!-- Add to Cart Form (Maroon, Full Width, Height 45px, text 14px) -->
+                    <form class="add-to-cart-form mt-1">
+                        <input type="hidden" name="product_id" value="{{ prod.id }}">
+                        <input type="hidden" name="quantity" value="1">
+                        {% if prod.stock_quantity > 0 %}
+                            <button type="submit" class="btn-add-cart">
+                                <i class="bi bi-bag-plus me-1"></i> Add to Cart
+                            </button>
+                        {% else %}
+                            <button class="btn-add-cart bg-secondary text-white" disabled>Out of Stock</button>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

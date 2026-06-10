@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    
+    <!-- Dynamic SEO Meta Tags -->
+    <title>{% block title %}PS-TEX | Premium Indian Sarees Store{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Explore PS-TEX for premium, authentic Indian sarees including Kanchipuram Silk, Banarasi, and traditional textiles. Fast shipping & secure checkout.{% endblock %}">
+    <meta name="keywords" content="saree, kanchipuram silk, banarasi silk, indian wedding saree, buy saree online, ps-tex">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Custom Theme Stylesheet -->
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- ==========================================
+         DESKTOP APPLICATION SECTION (min-width: 576px)
+         ========================================== -->
+
+    <!-- Desktop Promo Top Bar -->
+    <div class="desktop-only bg-dark text-white text-center py-2 fs-7" style="font-size: 0.85rem; border-bottom: 2px solid var(--color-gold);">
+        <span class="me-3"><i class="bi bi-gift me-2 text-warning"></i> Use coupon <strong class="text-warning">PSTEX10</strong> to get 10% off on orders above ₹1500!</span>
+        <span class="d-inline-block border-start border-secondary ps-3"><a href="https://chat.whatsapp.com/GCwBLTsAlYUJre5n4TrLe7" target="_blank" class="text-warning text-decoration-none fw-bold"><i class="bi bi-whatsapp me-1"></i> Join our WhatsApp Group</a></span>
+    </div>
+
+    <!-- Desktop Main Navigation Bar -->
+    <nav class="desktop-only navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fs-3 fw-bold" href="{{ url_for('main.index') }}">
+                PS-<span>TEX</span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-link-item">
+                        <a class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}" href="{{ url_for('main.index') }}">Home</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if request.endpoint == 'main.shop' %}active{% endif %}" href="#" id="shopDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Categories
+                        </a>
+                        <ul class="dropdown-menu border-0 shadow-sm" aria-labelledby="shopDropdown">
+                            <li><a class="dropdown-menu-item dropdown-item" href="{{ url_for('main.shop') }}">All Products</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            {% for cat in global_categories %}
+                            <li><a class="dropdown-menu-item dropdown-item" href="{{ url_for('main.shop', category_slug=cat.slug) }}">{{ cat.name }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    <li class="nav-link-item">
+                        <a class="nav-link {% if request.endpoint == 'main.about' %}active{% endif %}" href="{{ url_for('main.about') }}">Our Legacy</a>
+                    </li>
+                    <li class="nav-link-item">
+                        <a class="nav-link {% if request.endpoint == 'main.contact' %}active{% endif %}" href="{{ url_for('main.contact') }}">Contact Us</a>
+                    </li>
+                </ul>
+                
+                <!-- Search Bar -->
+                <form class="d-flex me-3" action="{{ url_for('main.shop') }}" method="GET">
+                    <div class="input-group">
+                        <input class="form-control border-end-0 border-maroon" type="search" placeholder="Search sarees..." aria-label="Search" name="search" value="{{ request.args.get('search', '') }}">
+                        <button class="btn btn-outline-maroon border-start-0" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="d-flex align-items-center">
+                    <!-- Wishlist (User only) -->
+                    {% if current_user.is_authenticated and not is_admin_session %}
+                    <a href="{{ url_for('cart.view_wishlist') }}" class="btn btn-link text-dark position-relative me-3 p-1" title="Wishlist">
+                        <i class="bi bi-heart fs-4"></i>
+                    </a>
+                    {% endif %}
+                    
+                    <!-- Cart -->
+                    {% if not is_admin_session %}
+                    <a href="{{ url_for('cart.view_cart') }}" class="btn btn-link text-dark position-relative me-3 p-1" title="Shopping Cart">
+                        <i class="bi bi-bag fs-4"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-maroon cart-badge {% if global_cart_count == 0 %}d-none{% endif %}">
+                            {{ global_cart_count }}
+                        </span>
+                    </a>
+                    {% endif %}
+                    
+                    <!-- User Account Dropdown -->
+                    <div class="dropdown">
+                        <button class="btn btn-outline-maroon dropdown-toggle px-3" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle me-1"></i>
+                            {% if current_user.is_authenticated %}
+                                {{ current_user.name }}
+                            {% else %}
+                                Account
+                            {% endif %}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow" aria-labelledby="userMenu">
+                            {% if current_user.is_authenticated %}
+                                {% if is_admin_session %}
+                                    <li><h6 class="dropdown-header text-maroon">Administrator Mode</h6></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('admin.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('admin.products') }}"><i class="bi bi-grid me-2"></i>Products</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('admin.orders') }}"><i class="bi bi-cart-fill me-2"></i>Orders</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('admin.settings') }}"><i class="bi bi-gear-fill me-2"></i>Settings</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="{{ url_for('admin.logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                                {% else %}
+                                    <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}"><i class="bi bi-person me-2"></i>My Profile</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}#orders"><i class="bi bi-clock-history me-2"></i>Order History</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                                {% endif %}
+                            {% else %}
+                                <li><a class="dropdown-item" href="{{ url_for('auth.login') }}"><i class="bi bi-box-arrow-in-right me-2"></i>Login</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('auth.register') }}"><i class="bi bi-r-square me-2"></i>Register</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-maroon" href="{{ url_for('admin.login') }}"><i class="bi bi-shield-lock me-2"></i>Admin Login</a></li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+
+    <!-- ==========================================
+         MOBILE APPLICATION SECTION (max-width: 575px)
+         ========================================== -->
+
+    <!-- Mobile Promo Top Bar -->
+    <div class="mobile-only bg-dark text-white text-center py-2 px-3 text-truncate" style="font-size: 0.75rem; border-bottom: 2px solid var(--color-gold);">
+        <span><i class="bi bi-gift text-warning me-1"></i> Use coupon <strong class="text-warning">PSTEX10</strong> for 10% off!</span>
+        <span class="mx-2">|</span>
+        <a href="https://chat.whatsapp.com/GCwBLTsAlYUJre5n4TrLe7" target="_blank" class="text-warning text-decoration-none fw-bold"><i class="bi bi-whatsapp"></i> WhatsApp Group</a>
+    </div>
+
+    <!-- Mobile Sticky Header Section -->
+    <header class="mobile-only mobile-header">
+        <div class="header-top">
+            <!-- PS-TEX logo on left -->
+            <a class="header-brand" href="{{ url_for('main.index') }}">
+                PS-<span>TEX</span>
+            </a>
+            
+            <!-- Hamburger menu on right -->
+            <button class="btn border-0 p-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu" aria-controls="mobileMenu">
+                <i class="bi bi-list fs-2 text-maroon"></i>
+            </button>
+        </div>
+        
+        <!-- Search bar below header -->
+        <div class="header-search">
+            <form action="{{ url_for('main.shop') }}" method="GET">
+                <div class="input-group">
+                    <input class="form-control" type="search" placeholder="Search sarees..." aria-label="Search" name="search" value="{{ request.args.get('search', '') }}">
+                    <button type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </header>
+
+    <!-- Mobile Offcanvas Mobile Menu (Slide-out drawer from right) -->
+    <div class="mobile-only offcanvas offcanvas-end" tabindex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title font-serif text-maroon" id="mobileMenuLabel">PS-TEX Sarees</h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body p-0">
+            <div class="list-group list-group-flush">
+                <a href="{{ url_for('main.index') }}" class="list-group-item list-group-item-action py-3 {% if request.endpoint == 'main.index' %}active-menu{% endif %}">
+                    <i class="bi bi-house-door me-2 text-maroon"></i> Home
+                </a>
+                
+                <div class="list-group-item py-2 bg-light font-weight-bold text-maroon small">FABRIC CATEGORIES</div>
+                <a href="{{ url_for('main.shop') }}" class="list-group-item list-group-item-action ps-4 py-2 small {% if request.endpoint == 'main.shop' and not request.args.get('category') and not selected_category %}active-menu{% endif %}">
+                    All Fabrics
+                </a>
+                {% for cat in global_categories %}
+                <a href="{{ url_for('main.shop', category_slug=cat.slug) }}" class="list-group-item list-group-item-action ps-4 py-2 small {% if (selected_category and selected_category.slug == cat.slug) or (request.args.get('category') == cat.slug) %}active-menu{% endif %}">
+                    <i class="bi bi-caret-right-fill me-1 text-gold" style="font-size: 0.75rem;"></i> {{ cat.name }}
+                </a>
+                {% endfor %}
+                
+                <div class="list-group-item py-2 bg-light font-weight-bold text-maroon small">EXPLORE</div>
+                <a href="{{ url_for('main.about') }}" class="list-group-item list-group-item-action py-2 small {% if request.endpoint == 'main.about' %}active-menu{% endif %}">
+                    <i class="bi bi-award me-2 text-maroon"></i> Our Legacy
+                </a>
+                <a href="{{ url_for('main.contact') }}" class="list-group-item list-group-item-action py-2 small {% if request.endpoint == 'main.contact' %}active-menu{% endif %}">
+                    <i class="bi bi-telephone-fill me-2 text-maroon"></i> Contact Us
+                </a>
+                
+                <div class="list-group-item py-2 bg-light font-weight-bold text-maroon small">MY ACCOUNT</div>
+                {% if current_user.is_authenticated %}
+                    {% if is_admin_session %}
+                        <a href="{{ url_for('admin.dashboard') }}" class="list-group-item list-group-item-action py-2 small">
+                            <i class="bi bi-speedometer2 me-2 text-maroon"></i> Admin Dashboard
+                        </a>
+                        <a href="{{ url_for('admin.logout') }}" class="list-group-item list-group-item-action py-2 small text-danger">
+                            <i class="bi bi-box-arrow-right me-2"></i> Admin Logout
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('auth.profile') }}" class="list-group-item list-group-item-action py-2 small {% if request.endpoint == 'auth.profile' %}active-menu{% endif %}">
+                            <i class="bi bi-person me-2 text-maroon"></i> My Profile
+                        </a>
+                        <a href="{{ url_for('auth.logout') }}" class="list-group-item list-group-item-action py-2 small text-danger">
+                            <i class="bi bi-box-arrow-right me-2"></i> Logout
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="list-group-item list-group-item-action py-2 small {% if request.endpoint == 'auth.login' %}active-menu{% endif %}">
+                        <i class="bi bi-box-arrow-in-right me-2 text-maroon"></i> Login
+                    </a>
+                    <a href="{{ url_for('auth.register') }}" class="list-group-item list-group-item-action py-2 small {% if request.endpoint == 'auth.register' %}active-menu{% endif %}">
+                        <i class="bi bi-r-square me-2 text-maroon"></i> Register
+                    </a>
+                    <a href="{{ url_for('admin.login') }}" class="list-group-item list-group-item-action py-2 small text-maroon">
+                        <i class="bi bi-shield-lock me-2"></i> Admin Login
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==========================================
+         SHARED FLASH MESSAGES SECTION
+         ========================================== -->
+
+    <!-- Flash Messages -->
+    <div class="container mt-3 px-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show" role="alert" style="font-size: 0.85rem; padding: 10px 12px; margin-bottom: 12px;">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="padding: 12px;"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+
+    <!-- ==========================================
+         SHARED MAIN CONTENT SECTION
+         ========================================== -->
+
+    <!-- Main Content Block -->
+    <main style="min-height: 60vh;">
+        {% block content %}{% endblock %}
+    </main>
+
+
+    <!-- ==========================================
+         DESKTOP FOOTER SECTION (min-width: 576px)
+         ========================================== -->
+
+    <!-- Desktop Footer Section -->
+    <footer class="desktop-only footer-section mt-5">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <h4 class="text-white font-serif mb-3">PS-TEX</h4>
+                    <p class="small text-light-gray" style="opacity: 0.8;">
+                        PS-TEX celebrates the timeless elegance of Indian handloom heritage. We source and curate premium sarees direct from skilled master weavers, delivering luxury silks and cottons right to your doorstep.
+                    </p>
+                    <div class="fs-5 mt-3">
+                        <a href="https://www.facebook.com/share/1CrVHZFEgu/" target="_blank" class="me-3 text-white"><i class="bi bi-facebook"></i></a>
+                        <a href="https://www.instagram.com/ps_tex_?igsh=MWduN3NuNWN5Y3NwNQ==" target="_blank" class="me-3 text-white"><i class="bi bi-instagram"></i></a>
+                        <a href="https://chat.whatsapp.com/GCwBLTsAlYUJre5n4TrLe7" target="_blank" class="me-3 text-white" title="WhatsApp Group"><i class="bi bi-whatsapp"></i></a>
+                    </div>
+                </div>
+                
+                <div class="col-lg-2 col-md-6">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="{{ url_for('main.index') }}">Home</a></li>
+                        <li class="mb-2"><a href="{{ url_for('main.shop') }}">Shop Sarees</a></li>
+                        <li class="mb-2"><a href="{{ url_for('main.about') }}">Our Legacy</a></li>
+                        <li class="mb-2"><a href="{{ url_for('main.contact') }}">Contact Us</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <h5>Categories</h5>
+                    <ul class="list-unstyled">
+                        {% for cat in global_categories[:4] %}
+                        <li class="mb-2"><a href="{{ url_for('main.shop', category_slug=cat.slug) }}">{{ cat.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <h5>Store Info</h5>
+                    <ul class="list-unstyled text-light-gray small" style="opacity: 0.85;">
+                        <li class="mb-3 d-flex align-items-start">
+                            <i class="bi bi-geo-alt-fill me-2 text-warning mt-1"></i>
+                            <span>Elampillai, Salem,<br>Tamil Nadu - 637502</span>
+                        </li>
+                        <li class="mb-2 d-flex align-items-center">
+                            <i class="bi bi-telephone-fill me-2 text-warning"></i>
+                            <span>+91 72006 08333</span>
+                        </li>
+                        <li class="mb-2 d-flex align-items-center">
+                            <i class="bi bi-envelope-fill me-2 text-warning"></i>
+                            <span>prasanthsenthilkumar09@gmail.com</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <hr class="my-4" style="background-color: rgba(255,255,255,0.15);">
+            
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start small">
+                    &copy; 2026 PS-TEX Sarees. All rights reserved. Built for production.
+                </div>
+                <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">
+                    <img src="https://razorpay.com/assets/razorpay-glyph.svg" alt="Razorpay Secured" height="25" class="me-2 filter-grayscale"> Secured by Razorpay
+                </div>
+            </div>
+        </div>
+    </footer>
+
+
+    <!-- ==========================================
+         MOBILE FOOTER & NAVIGATION SECTION (max-width: 575px)
+         ========================================== -->
+
+    <!-- Mobile Footer -->
+    <footer class="mobile-only mobile-footer">
+        <div class="fw-bold text-maroon mb-1" style="font-size: 1.1rem; font-family: 'Playfair Display', serif;">PS-TEX</div>
+        <p class="small text-muted mb-3" style="font-size: 0.8rem;">Celebrating the timeless elegance of premium Indian sarees and traditional master weavers.</p>
+        <div class="social-icons mb-3">
+            <a href="https://www.facebook.com/share/1CrVHZFEgu/" target="_blank"><i class="bi bi-facebook"></i></a>
+            <a href="https://www.instagram.com/ps_tex_?igsh=MWduN3NuNWN5Y3NwNQ==" target="_blank"><i class="bi bi-instagram"></i></a>
+            <a href="https://chat.whatsapp.com/GCwBLTsAlYUJre5n4TrLe7" target="_blank" title="WhatsApp Group"><i class="bi bi-whatsapp"></i></a>
+        </div>
+        <div class="small text-muted" style="font-size: 0.75rem;">&copy; 2026 PS-TEX. All rights reserved.</div>
+    </footer>
+
+    <!-- Mobile Fixed Bottom Navigation Bar -->
+    <div class="mobile-only bottom-nav">
+        <!-- Home -->
+        <a href="{{ url_for('main.index') }}" class="nav-item {% if request.endpoint == 'main.index' %}active{% endif %}">
+            <i class="bi {% if request.endpoint == 'main.index' %}bi-house-door-fill{% else %}bi-house-door{% endif %}"></i>
+            <span>Home</span>
+        </a>
+        
+        <!-- Shop -->
+        <a href="{{ url_for('main.shop') }}" class="nav-item {% if request.endpoint == 'main.shop' %}active{% endif %}">
+            <i class="bi {% if request.endpoint == 'main.shop' %}bi-grid-fill{% else %}bi-grid{% endif %}"></i>
+            <span>Shop</span>
+        </a>
+        
+        <!-- Wishlist -->
+        {% if current_user.is_authenticated and not is_admin_session %}
+            <a href="{{ url_for('cart.view_wishlist') }}" class="nav-item {% if request.endpoint == 'cart.view_wishlist' %}active{% endif %}">
+                <i class="bi {% if request.endpoint == 'cart.view_wishlist' %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+                <span>Wishlist</span>
+            </a>
+        {% else %}
+            <a href="{{ url_for('auth.login', next=url_for('cart.view_wishlist')) }}" class="nav-item">
+                <i class="bi bi-heart"></i>
+                <span>Wishlist</span>
+            </a>
+        {% endif %}
+        
+        <!-- Cart -->
+        {% if not is_admin_session %}
+            <a href="{{ url_for('cart.view_cart') }}" class="nav-item {% if request.endpoint == 'cart.view_cart' %}active{% endif %}">
+                <div class="position-relative">
+                    <i class="bi {% if request.endpoint == 'cart.view_cart' %}bi-bag-fill{% else %}bi-bag{% endif %}"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-maroon cart-badge {% if global_cart_count == 0 %}d-none{% endif %}" style="font-size: 0.65rem; padding: 2px 4px;">
+                        {{ global_cart_count }}
+                    </span>
+                </div>
+                <span>Cart</span>
+            </a>
+        {% else %}
+            <a href="{{ url_for('admin.dashboard') }}" class="nav-item">
+                <i class="bi bi-speedometer2"></i>
+                <span>Admin</span>
+            </a>
+        {% endif %}
+        
+        <!-- Account -->
+        <a href="{% if current_user.is_authenticated %}{{ url_for('auth.profile') }}{% else %}{{ url_for('auth.login') }}{% endif %}" class="nav-item {% if request.endpoint == 'auth.profile' or request.endpoint == 'auth.login' or request.endpoint == 'auth.register' %}active{% endif %}">
+            <i class="bi {% if request.endpoint == 'auth.profile' %}bi-person-fill{% else %}bi-person{% endif %}"></i>
+            <span>Account</span>
+        </a>
+    </div>
+
+    <!-- Bootstrap 5 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
