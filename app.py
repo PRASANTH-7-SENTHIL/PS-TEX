@@ -146,8 +146,9 @@ def seed_database():
         
     db.session.commit()
 
+app = create_app()
+
 if __name__ == '__main__':
-    app = create_app()
     # Create upload directories
     os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'products'), exist_ok=True)
     os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'banners'), exist_ok=True)
