@@ -5,7 +5,6 @@ __pycache__/
 *.pyo
 *.pyd
 pstex.db
-uploads/
 .vscode/
 .idea/
 .DS_Store
