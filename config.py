@@ -20,8 +20,11 @@ class Config:
     if MYSQL_USER and MYSQL_PASSWORD:
         SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DB}"
     else:
-        # Fallback to local SQLite for development convenience
-        SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', f"sqlite:///{os.path.join(BASE_DIR, 'pstex.db')}")
+        # Fallback to local SQLite. Use /tmp/ on Vercel since the project root is read-only.
+        if os.environ.get('VERCEL') == '1' or os.environ.get('VERCEL'):
+            SQLALCHEMY_DATABASE_URI = "sqlite:////tmp/pstex.db"
+        else:
+            SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', f"sqlite:///{os.path.join(BASE_DIR, 'pstex.db')}")
         
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
