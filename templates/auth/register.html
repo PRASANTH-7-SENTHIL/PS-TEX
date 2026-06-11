@@ -47,22 +47,28 @@
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
                             <label for="password" class="form-label fw-semibold">Password</label>
-                            <input type="password" class="form-control" id="password" name="password" placeholder="••••••••" required>
+                            <div class="input-group">
+                                <input type="password" class="form-control border-end-0" id="password" name="password" placeholder="••••••••" required>
+                                <span class="input-group-text bg-white border-start-0" id="togglePassword" style="cursor: pointer;">
+                                    <i class="bi bi-eye" id="toggleIcon"></i>
+                                </span>
+                            </div>
                         </div>
                         <div class="col-md-6">
                             <label for="confirm_password" class="form-label fw-semibold">Confirm Password</label>
-                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="••••••••" required>
+                            <div class="input-group">
+                                <input type="password" class="form-control border-end-0" id="confirm_password" name="confirm_password" placeholder="••••••••" required>
+                                <span class="input-group-text bg-white border-start-0" id="toggleConfirmPassword" style="cursor: pointer;">
+                                    <i class="bi bi-eye" id="toggleConfirmIcon"></i>
+                                </span>
+                            </div>
                         </div>
                         <div class="col-12 mt-1">
-                            <div class="form-text small text-muted"><i class="bi bi-shield-lock-fill text-warning me-1"></i> Passwords must be at least 8 characters long, containing a letter, number, and special symbol.</div>
+                            <div class="form-text small text-muted"><i class="bi bi-shield-lock-fill text-warning me-1"></i> Passwords must be at least 8 characters (symbols and numbers are optional).</div>
                         </div>
                     </div>
                     
                     <button type="submit" class="btn btn-maroon w-100 py-3 font-serif fs-5 mb-3">Sign Up</button>
-                    
-
-
-
                     
                     <div class="text-center text-muted small">
                         Already have an account? <a href="{{ url_for('auth.login') }}" class="text-maroon fw-semibold">Sign In Here</a>
@@ -73,4 +79,36 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const togglePassword = document.querySelector('#togglePassword');
+    const password = document.querySelector('#password');
+    const toggleIcon = document.querySelector('#toggleIcon');
+
+    if (togglePassword && password && toggleIcon) {
+        togglePassword.addEventListener('click', function() {
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            toggleIcon.classList.toggle('bi-eye');
+            toggleIcon.classList.toggle('bi-eye-slash');
+        });
+    }
+
+    const toggleConfirmPassword = document.querySelector('#toggleConfirmPassword');
+    const confirmPassword = document.querySelector('#confirm_password');
+    const toggleConfirmIcon = document.querySelector('#toggleConfirmIcon');
+
+    if (toggleConfirmPassword && confirmPassword && toggleConfirmIcon) {
+        toggleConfirmPassword.addEventListener('click', function() {
+            const type = confirmPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+            confirmPassword.setAttribute('type', type);
+            toggleConfirmIcon.classList.toggle('bi-eye');
+            toggleConfirmIcon.classList.toggle('bi-eye-slash');
+        });
+    }
+});
+</script>
 {% endblock %}
