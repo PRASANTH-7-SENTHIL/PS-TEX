@@ -88,76 +88,74 @@ document.addEventListener('DOMContentLoaded', function() {
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const loginForm = document.querySelector('form');
-        const emailInput = document.querySelector('#email');
-        const passwordInput = document.querySelector('#password');
-        const submitBtn = document.querySelector('button[type="submit"]');
+    const loginForm = document.querySelector('form');
+    const emailInput = document.querySelector('#email');
+    const passwordInput = document.querySelector('#password');
+    const submitBtn = document.querySelector('button[type="submit"]');
 
-        let errorAlert = document.querySelector('#firebase-error-alert');
-        if (!errorAlert) {
-            errorAlert = document.createElement('div');
-            errorAlert.id = 'firebase-error-alert';
-            errorAlert.className = 'alert alert-danger d-none mt-3';
-            loginForm.insertBefore(errorAlert, loginForm.firstChild);
-        }
+    let errorAlert = document.querySelector('#firebase-error-alert');
+    if (!errorAlert) {
+        errorAlert = document.createElement('div');
+        errorAlert.id = 'firebase-error-alert';
+        errorAlert.className = 'alert alert-danger d-none mt-3';
+        loginForm.insertBefore(errorAlert, loginForm.firstChild);
+    }
 
-        loginForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
+    loginForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Clear previous errors
+        errorAlert.classList.add('d-none');
+        errorAlert.textContent = '';
+        
+        // Disable button and show loader
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Signing in...';
+
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+
+        try {
+            // Sign in with Firebase
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
             
-            // Clear previous errors
-            errorAlert.classList.add('d-none');
-            errorAlert.textContent = '';
+            // Get ID token
+            const idToken = await user.getIdToken();
             
-            // Disable button and show loader
-            const originalBtnText = submitBtn.innerHTML;
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Signing in...';
-
-            const email = emailInput.value.trim();
-            const password = passwordInput.value;
-
-            try {
-                // Sign in with Firebase
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-                
-                // Get ID token
-                const idToken = await user.getIdToken();
-                
-                // Inject hidden firebase_id_token input
-                let tokenInput = document.querySelector('input[name="firebase_id_token"]');
-                if (!tokenInput) {
-                    tokenInput = document.createElement('input');
-                    tokenInput.type = 'hidden';
-                    tokenInput.name = 'firebase_id_token';
-                    loginForm.appendChild(tokenInput);
-                }
-                tokenInput.value = idToken;
-                
-                // Submit the form to Flask
-                loginForm.submit();
-            } catch (error) {
-                console.error("Firebase Login Error:", error);
-                
-                // Enable button
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnText;
-                
-                // Map errors to user friendly messages
-                let message = 'Invalid email or password. Please try again.';
-                if (error.code === 'auth/invalid-email') {
-                    message = 'Invalid email address format.';
-                } else if (error.code === 'auth/user-disabled') {
-                    message = 'This user account has been disabled.';
-                } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-                    message = 'Invalid email or password.';
-                }
-                
-                errorAlert.textContent = message;
-                errorAlert.classList.remove('d-none');
+            // Inject hidden firebase_id_token input
+            let tokenInput = document.querySelector('input[name="firebase_id_token"]');
+            if (!tokenInput) {
+                tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = 'firebase_id_token';
+                loginForm.appendChild(tokenInput);
             }
-        });
+            tokenInput.value = idToken;
+            
+            // Submit the form to Flask
+            loginForm.submit();
+        } catch (error) {
+            console.error("Firebase Login Error:", error);
+            
+            // Enable button
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+            
+            // Map errors to user friendly messages
+            let message = 'Invalid email or password. Please try again.';
+            if (error.code === 'auth/invalid-email') {
+                message = 'Invalid email address format.';
+            } else if (error.code === 'auth/user-disabled') {
+                message = 'This user account has been disabled.';
+            } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                message = 'Invalid email or password.';
+            }
+            
+            errorAlert.textContent = message;
+            errorAlert.classList.remove('d-none');
+        }
     });
 </script>
 {% endblock %}
