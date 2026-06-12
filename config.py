@@ -10,9 +10,6 @@ class Config:
     # Flask Security
     SECRET_KEY = os.environ.get('SECRET_KEY', 'ps-tex-super-secret-key-1619')
     
-    # Firebase Settings
-    FIREBASE_API_KEY = os.environ.get('FIREBASE_API_KEY', 'AIzaSyDpGbEWS0eVvrYng9g53w5RXfvWu6rXHWg')
-    
     # Database
     # Format: mysql+pymysql://user:password@host/dbname
     MYSQL_USER = os.environ.get('MYSQL_USER')
