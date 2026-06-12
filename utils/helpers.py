@@ -2,6 +2,16 @@ import os
 import re
 from werkzeug.utils import secure_filename
 from flask import current_app
+import cloudinary
+import cloudinary.uploader
+
+def configure_cloudinary():
+    cloudinary.config(
+        cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
+        api_key=os.environ.get("CLOUDINARY_API_KEY"),
+        api_secret=os.environ.get("CLOUDINARY_API_SECRET"),
+        secure=True
+    )
 
 def slugify(text):
     """
@@ -23,8 +33,8 @@ def allowed_file(filename):
 
 def save_product_image(file_storage, product_code, index):
     """
-    Save an uploaded file into uploads/products/<product_code>/
-    Returns the relative path to be saved in the database (e.g. 'uploads/products/PS1001/image1.jpg')
+    Save an uploaded product image to Cloudinary (if credentials are set)
+    or fall back to local storage.
     """
     if not file_storage or file_storage.filename == '':
         return None
@@ -32,28 +42,36 @@ def save_product_image(file_storage, product_code, index):
     if not allowed_file(file_storage.filename):
         return None
 
-    # Target directory: uploads/products/<product_code>/
+    # If Cloudinary credentials are set, upload directly to the cloud
+    cloud_name = os.environ.get("CLOUDINARY_CLOUD_NAME")
+    api_key = os.environ.get("CLOUDINARY_API_KEY")
+    api_secret = os.environ.get("CLOUDINARY_API_SECRET")
+    
+    if cloud_name and api_key and api_secret:
+        try:
+            configure_cloudinary()
+            upload_result = cloudinary.uploader.upload(
+                file_storage,
+                folder=f"pstex/products/{product_code}",
+                public_id=f"image{index}",
+                overwrite=True
+            )
+            return upload_result.get("secure_url")
+        except Exception as e:
+            current_app.logger.warning(f"Cloudinary upload failed, falling back to local: {e}")
+
+    # Fallback to local upload
     target_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'products', product_code)
     os.makedirs(target_dir, exist_ok=True)
-    
-    # Get extension
     ext = file_storage.filename.rsplit('.', 1)[1].lower()
-    
-    # Standardized name: image<index>.<ext>
     safe_name = f"image{index}.{ext}"
     file_path = os.path.join(target_dir, safe_name)
-    
-    # Save the file
     file_storage.save(file_path)
-    
-    # Return path relative to the app context or web server
-    # We will serve this folder via static routes
     return f"uploads/products/{product_code}/{safe_name}"
 
 def save_banner_image(file_storage):
     """
-    Save an uploaded banner file into uploads/banners/
-    Returns the relative path to be saved in the database (e.g. 'banners/uuid.jpg')
+    Save an uploaded banner file to Cloudinary or fall back to local.
     """
     import uuid
     if not file_storage or file_storage.filename == '':
@@ -62,18 +80,28 @@ def save_banner_image(file_storage):
     if not allowed_file(file_storage.filename):
         return None
 
-    # Target directory: uploads/banners/
+    # If Cloudinary credentials are set, upload directly to the cloud
+    cloud_name = os.environ.get("CLOUDINARY_CLOUD_NAME")
+    api_key = os.environ.get("CLOUDINARY_API_KEY")
+    api_secret = os.environ.get("CLOUDINARY_API_SECRET")
+    
+    if cloud_name and api_key and api_secret:
+        try:
+            configure_cloudinary()
+            upload_result = cloudinary.uploader.upload(
+                file_storage,
+                folder="pstex/banners",
+                public_id=f"banner_{uuid.uuid4().hex}"
+            )
+            return upload_result.get("secure_url")
+        except Exception as e:
+            current_app.logger.warning(f"Cloudinary banner upload failed, falling back to local: {e}")
+
+    # Fallback to local upload
     target_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'banners')
     os.makedirs(target_dir, exist_ok=True)
-    
-    # Get extension
     ext = file_storage.filename.rsplit('.', 1)[1].lower()
-    
-    # Standardized name
     safe_name = f"banner_{uuid.uuid4().hex}.{ext}"
     file_path = os.path.join(target_dir, safe_name)
-    
-    # Save the file
     file_storage.save(file_path)
-    
     return f"banners/{safe_name}"

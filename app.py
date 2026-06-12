@@ -43,6 +43,15 @@ def create_app():
     
     @app.route('/uploads/<path:filename>')
     def uploaded_files(filename):
+        # If the filename is a full URL (e.g. from Cloudinary), redirect to it directly
+        if filename.startswith('http://') or filename.startswith('https://'):
+            return redirect(filename)
+        # Handle cases where double slashes were merged by the router or client
+        if filename.startswith('http:/') and not filename.startswith('http://'):
+            return redirect(filename.replace('http:/', 'http://', 1))
+        if filename.startswith('https:/') and not filename.startswith('https://'):
+            return redirect(filename.replace('https:/', 'https://', 1))
+            
         # Strip leading "uploads/" if present to prevent double nesting
         if filename.startswith('uploads/'):
             filename = filename[len('uploads/'):]
@@ -144,34 +153,11 @@ def seed_database():
         db.session.add(coupon)
         print("Default discount coupon seeded.")
         
-    # 4. Seed test Kanchipuram Silk Saree product
-    kanchi_category = Category.query.filter_by(slug='kanchipuram-silk').first()
-    if kanchi_category:
-        existing_product = Product.query.filter_by(product_code='PS-TEST-KANCHI').first()
-        if not existing_product:
-            test_product = Product(
-                product_code='PS-TEST-KANCHI',
-                name='Kanchipuram Silk Saree (Test)',
-                slug='kanchipuram-silk-saree-test',
-                category_id=kanchi_category.id,
-                price=1.00,  # 1 Rupee for easy live payment gateway testing!
-                description='Beautiful traditional Kanchipuram Silk Saree for testing payment flow.',
-                material='Pure Silk',
-                color='Gold & Crimson',
-                stock_quantity=100,
-                availability_status='In Stock'
-            )
-            db.session.add(test_product)
-            db.session.flush() # Populate the ID
-            
-            # Associate image
-            test_image = ProductImage(
-                product_id=test_product.id,
-                image_path='categories/kanchipuram.png', # Matches the uploaded category image file
-                is_primary=True
-            )
-            db.session.add(test_image)
-            print("Test Kanchipuram Saree seeded.")
+    # 4. Remove default test Kanchipuram Silk Saree product if it exists
+    existing_product = Product.query.filter_by(product_code='PS-TEST-KANCHI').first()
+    if existing_product:
+        db.session.delete(existing_product)
+        print("Default test product removed.")
         
     db.session.commit()
 

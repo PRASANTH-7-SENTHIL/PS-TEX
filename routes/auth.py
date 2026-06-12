@@ -1,11 +1,27 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, session, jsonify
+from flask import Blueprint, render_template, redirect, url_for, flash, request, session, jsonify, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from models import db, User, Order, WishlistItem
 from utils.security import validate_email, validate_password, validate_phone
 import random
 from datetime import datetime, timedelta
+import requests
 
 auth_bp = Blueprint('auth', __name__)
+
+def verify_firebase_token(id_token):
+    api_key = current_app.config.get('FIREBASE_API_KEY')
+    url = f"https://identitytoolkit.googleapis.com/v1/accounts:lookup?key={api_key}"
+    payload = {"idToken": id_token}
+    try:
+        response = requests.post(url, json=payload, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            if "users" in data and len(data["users"]) > 0:
+                return data["users"][0]
+        return None
+    except Exception as e:
+        current_app.logger.error(f"Firebase token verification failed: {e}")
+        return None
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
@@ -13,56 +29,82 @@ def register():
         return redirect(url_for('main.index'))
         
     if request.method == 'POST':
+        firebase_id_token = request.form.get('firebase_id_token')
+        if not firebase_id_token:
+            flash('JavaScript and Firebase authentication are required.', 'danger')
+            return render_template('auth/register.html')
+            
+        decoded_token = verify_firebase_token(firebase_id_token)
+        if not decoded_token:
+            flash('Invalid or expired authentication token. Please try again.', 'danger')
+            return render_template('auth/register.html')
+            
+        email = decoded_token.get('email')
+        if not email:
+            flash('Unable to retrieve email from token.', 'danger')
+            return render_template('auth/register.html')
+            
         first_name = request.form.get('first_name', '').strip()
         last_name = request.form.get('last_name', '').strip()
-        email = request.form.get('email', '').strip()
         phone = request.form.get('phone', '').strip()
-        password = request.form.get('password', '')
-        confirm_password = request.form.get('confirm_password', '')
         
-        if not first_name or not last_name or not email or not password:
-            flash('All fields are required.', 'danger')
-            return render_template('auth/register.html')
+        # fallback to token display name if form inputs are somehow missing
+        display_name = decoded_token.get('displayName', '')
+        if not first_name and display_name:
+            parts = display_name.split(' ', 1)
+            first_name = parts[0]
+            last_name = parts[1] if len(parts) > 1 else ''
             
-        if not validate_email(email):
-            flash('Invalid email address format.', 'danger')
-            return render_template('auth/register.html')
+        if not first_name:
+            first_name = email.split('@')[0]
             
-        if not validate_phone(phone):
-            flash('Invalid phone number format. Please provide a 10-12 digit number.', 'danger')
-            return render_template('auth/register.html')
-            
-        if not validate_password(password):
-            flash('Password must be at least 8 characters long and contain a letter, a number, and a special character.', 'danger')
-            return render_template('auth/register.html')
-            
-        if password != confirm_password:
-            flash('Passwords do not match.', 'danger')
-            return render_template('auth/register.html')
-            
-        # Check if email already exists
         existing_user = User.query.filter_by(email=email).first()
-        if existing_user:
-            flash('Email address is already registered.', 'danger')
-            return render_template('auth/register.html')
+        if not existing_user:
+            # Create user
+            new_user = User(
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                phone=phone
+            )
+            # Set random password since it is authenticated by Firebase
+            import uuid
+            new_user.set_password(uuid.uuid4().hex)
             
-        # Create user
-        new_user = User(
-            first_name=first_name,
-            last_name=last_name,
-            email=email,
-            phone=phone
-        )
-        new_user.set_password(password)
-        
-        try:
-            db.session.add(new_user)
-            db.session.commit()
-            flash('Registration successful! Please log in.', 'success')
-            return redirect(url_for('auth.login'))
-        except Exception as e:
-            db.session.rollback()
-            flash('An error occurred during registration. Please try again.', 'danger')
+            try:
+                db.session.add(new_user)
+                db.session.commit()
+                login_user(new_user)
+                session['is_admin'] = False
+                
+                # Merge guest cart
+                try:
+                    from routes.cart import merge_carts_on_login
+                    merge_carts_on_login()
+                except Exception as e:
+                    current_app.logger.error(f"Error merging cart on register: {e}")
+                    
+                flash('Registration and sign in successful!', 'success')
+                return redirect(url_for('main.index'))
+            except Exception as e:
+                db.session.rollback()
+                current_app.logger.error(f"Error creating user: {e}")
+                flash('An error occurred during account setup. Please try again.', 'danger')
+                return render_template('auth/register.html')
+        else:
+            # User already exists in SQLite
+            login_user(existing_user)
+            session['is_admin'] = False
+            
+            # Merge guest cart
+            try:
+                from routes.cart import merge_carts_on_login
+                merge_carts_on_login()
+            except Exception as e:
+                current_app.logger.error(f"Error merging cart on register: {e}")
+                
+            flash('You are already registered and now signed in.', 'success')
+            return redirect(url_for('main.index'))
             
     return render_template('auth/register.html')
 
@@ -74,18 +116,64 @@ def login():
         return redirect(url_for('main.index'))
         
     if request.method == 'POST':
-        email = request.form.get('email', '').strip()
-        password = request.form.get('password', '')
+        firebase_id_token = request.form.get('firebase_id_token')
         remember = True if request.form.get('remember') else False
         
-        user = User.query.filter_by(email=email).first()
-        if not user or not user.check_password(password):
-            flash('Invalid email or password.', 'danger')
+        if not firebase_id_token:
+            flash('JavaScript and Firebase authentication are required.', 'danger')
             return render_template('auth/login.html')
             
+        decoded_token = verify_firebase_token(firebase_id_token)
+        if not decoded_token:
+            flash('Invalid or expired authentication token. Please try again.', 'danger')
+            return render_template('auth/login.html')
+            
+        email = decoded_token.get('email')
+        if not email:
+            flash('Unable to retrieve email from token.', 'danger')
+            return render_template('auth/login.html')
+            
+        user = User.query.filter_by(email=email).first()
+        
+        if not user:
+            # The database must have been reset on Render. Recreate user on-the-fly!
+            display_name = decoded_token.get('displayName', '')
+            if display_name:
+                parts = display_name.split(' ', 1)
+                first_name = parts[0]
+                last_name = parts[1] if len(parts) > 1 else ''
+            else:
+                first_name = email.split('@')[0]
+                last_name = ''
+                
+            user = User(
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                phone=''
+            )
+            import uuid
+            user.set_password(uuid.uuid4().hex)
+            
+            try:
+                db.session.add(user)
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                current_app.logger.error(f"Error recreating user on login: {e}")
+                flash('An error occurred during account login setup. Please try again.', 'danger')
+                return render_template('auth/login.html')
+                
         session['is_admin'] = False # Ensure not treated as admin
         login_user(user, remember=remember)
         
+        # Merge guest cart
+        try:
+            from routes.cart import merge_carts_on_login
+            merge_carts_on_login()
+        except Exception as e:
+            current_app.logger.error(f"Error merging cart on login: {e}")
+            
         next_page = request.args.get('next')
         return redirect(next_page or url_for('main.index'))
         
