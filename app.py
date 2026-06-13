@@ -100,11 +100,28 @@ def create_app():
     with app.app_context():
         try:
             db.create_all()
+            run_migrations()
             seed_database()
         except Exception as e:
             app.logger.warning(f"Database initialization skipped or failed: {str(e)}")
             
     return app
+
+def run_migrations():
+    """
+    Checks if columns exist and runs raw SQL migrations if needed.
+    """
+    from sqlalchemy import inspect
+    try:
+        inspector = inspect(db.engine)
+        columns = [c['name'] for c in inspector.get_columns('product_images')]
+        if 'color' not in columns:
+            db.session.execute(db.text("ALTER TABLE product_images ADD COLUMN color VARCHAR(50) DEFAULT NULL"))
+            db.session.commit()
+            print("Database migration: Added 'color' column to 'product_images' table.")
+    except Exception as e:
+        db.session.rollback()
+        print(f"Database migration warning: {str(e)}")
 
 def seed_database():
     """

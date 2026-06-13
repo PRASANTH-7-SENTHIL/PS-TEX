@@ -68,7 +68,7 @@
                                 <td>
                                     <div class="ratio ratio-4x5 bg-cream rounded overflow-hidden" style="width: 50px;">
                                         {% if prod.images %}
-                                            <img src="{{ url_for('uploaded_files', filename=prod.primary_image) }}" alt="{{ prod.name }}" class="object-fit-cover">
+                                            <img src="{{ prod.primary_image_url }}" alt="{{ prod.name }}" class="object-fit-cover">
                                         {% else %}
                                             <img src="{{ url_for('static', filename='images/placeholder.svg') }}" alt="{{ prod.name }}" class="object-fit-cover">
                                         {% endif %}

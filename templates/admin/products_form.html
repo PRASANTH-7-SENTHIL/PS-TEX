@@ -119,11 +119,36 @@
                             <input type="number" class="form-control" id="stock_quantity" name="stock_quantity" min="0" value="{{ product.stock_quantity if product else '1' }}" required>
                         </div>
                         
-                        <!-- Upload Images -->
+                        <!-- Upload Images Section -->
                         <div class="col-md-8">
-                            <label for="images" class="form-label fw-semibold">Upload Product Images</label>
-                            <input class="form-control" type="file" id="images" name="images" multiple>
-                            <div class="form-text small">Select multiple image files (JPG, PNG, WEBP). Max size: 5MB per file. First image becomes primary.</div>
+                            <label class="form-label fw-semibold d-block">Upload Product Images</label>
+                            
+                            <!-- Toggle Button Group -->
+                            <div class="btn-group w-100 mb-3" role="group" aria-label="Upload source toggle">
+                                <input type="radio" class="btn-check" name="upload_mode" id="btn_file_mode" value="files" checked>
+                                <label class="btn btn-outline-dark" for="btn_file_mode"><i class="bi bi-files me-1"></i> Individual Files</label>
+                                
+                                <input type="radio" class="btn-check" name="upload_mode" id="btn_folder_mode" value="folder">
+                                <label class="btn btn-outline-dark" for="btn_folder_mode"><i class="bi bi-folder-fill me-1"></i> One Folder</label>
+                            </div>
+                            
+                            <!-- Files Input -->
+                            <div id="fileInputContainer">
+                                <input class="form-control" type="file" id="images" name="images" multiple accept="image/*">
+                                <div class="form-text small">Select up to 10 image files (JPG, PNG, WEBP). First image becomes primary.</div>
+                            </div>
+                            
+                            <!-- Folder Input -->
+                            <div id="folderInputContainer" style="display: none;">
+                                <input class="form-control" type="file" id="images_folder" name="images_folder" webkitdirectory directory multiple accept="image/*">
+                                <div class="form-text small">Select a folder containing product images. First image in folder order becomes primary.</div>
+                            </div>
+                            
+                            <!-- Dynamic Preview Container -->
+                            <div class="mt-4 p-3 bg-light rounded" id="previewsSection" style="display: none; border: 1px dashed #ced4da;">
+                                <h6 class="fw-bold text-maroon mb-3"><i class="bi bi-palette me-1"></i> Assign Saree Colors to Images</h6>
+                                <div class="row g-3" id="previewsContainer"></div>
+                            </div>
                         </div>
                     </div>
                     
@@ -147,17 +172,24 @@
                 <div class="row g-3" id="existingImagesRow">
                     {% for img in product.images %}
                     <div class="col-md-3 col-sm-4 col-6" id="img-card-{{ img.id }}">
-                        <div class="img-manage-card">
-                            {% if img.is_primary %}
-                                <span class="badge-primary-action" id="primary-badge-{{ img.id }}">PRIMARY</span>
-                            {% endif %}
+                        <div class="img-manage-card card border shadow-sm rounded overflow-hidden">
+                            <div class="position-relative">
+                                {% if img.is_primary %}
+                                    <span class="badge-primary-action" id="primary-badge-{{ img.id }}">PRIMARY</span>
+                                {% endif %}
+                                
+                                <!-- Delete Button -->
+                                <button type="button" class="btn-delete-img" onclick="deleteImage({{ img.id }})" title="Delete Image">×</button>
+                                
+                                <img src="{{ img.url }}" alt="Saree Image">
+                            </div>
                             
-                            <!-- Delete Button -->
-                            <button type="button" class="btn-delete-img" onclick="deleteImage({{ img.id }})" title="Delete Image">×</button>
+                            <div class="p-2 bg-light border-top">
+                                <label class="form-label small fw-bold mb-1">Color Variant:</label>
+                                <input type="text" class="form-control form-control-sm" name="existing_image_color_{{ img.id }}" value="{{ img.color or '' }}" placeholder="e.g. Blue" required>
+                            </div>
                             
-                            <img src="{{ url_for('uploaded_files', filename=img.image_path) }}" alt="Saree Image">
-                            
-                            <div class="img-actions">
+                            <div class="img-actions border-top">
                                 <button type="button" class="btn btn-xs btn-outline-maroon w-100 py-1" style="font-size: 0.75rem;" onclick="setPrimary({{ img.id }})">Set Primary</button>
                             </div>
                         </div>
@@ -221,5 +253,128 @@
             alert('Failed to set primary image.');
         }
     }
+
+    // File and folder upload handling
+    document.addEventListener('DOMContentLoaded', () => {
+        const fileModeRadio = document.getElementById('btn_file_mode');
+        const folderModeRadio = document.getElementById('btn_folder_mode');
+        const fileInputContainer = document.getElementById('fileInputContainer');
+        const folderInputContainer = document.getElementById('folderInputContainer');
+        const imagesInput = document.getElementById('images');
+        const folderInput = document.getElementById('images_folder');
+        const previewsSection = document.getElementById('previewsSection');
+        const previewsContainer = document.getElementById('previewsContainer');
+
+        if (fileModeRadio && folderModeRadio) {
+            fileModeRadio.addEventListener('change', () => {
+                fileInputContainer.style.display = 'block';
+                folderInputContainer.style.display = 'none';
+                folderInput.value = '';
+                updatePreviews([]);
+            });
+
+            folderModeRadio.addEventListener('change', () => {
+                fileInputContainer.style.display = 'none';
+                folderInputContainer.style.display = 'block';
+                imagesInput.value = '';
+                updatePreviews([]);
+            });
+        }
+
+        if (imagesInput) {
+            imagesInput.addEventListener('change', (e) => {
+                updatePreviews(e.target.files);
+            });
+        }
+
+        if (folderInput) {
+            folderInput.addEventListener('change', (e) => {
+                updatePreviews(e.target.files);
+            });
+        }
+
+        function updatePreviews(filesList) {
+            previewsContainer.innerHTML = '';
+            
+            // Convert to array and filter for images
+            let files = Array.from(filesList).filter(file => file.type.startsWith('image/'));
+            
+            // Sort by file name to keep order predictable
+            files.sort((a, b) => a.name.localeCompare(b.name));
+            
+            // Limit to max 10
+            if (files.length > 10) {
+                alert('A maximum of 10 images can be uploaded. Only the first 10 images will be processed.');
+                files = files.slice(0, 10);
+            }
+
+            if (files.length === 0) {
+                previewsSection.style.display = 'none';
+                return;
+            }
+
+            previewsSection.style.display = 'block';
+
+            files.forEach((file, index) => {
+                const col = document.createElement('div');
+                col.className = 'col-md-3 col-sm-4 col-6';
+                
+                const card = document.createElement('div');
+                card.className = 'img-manage-card card border shadow-sm rounded overflow-hidden mb-2';
+                
+                const imgWrap = document.createElement('div');
+                imgWrap.className = 'position-relative';
+                
+                if (index === 0) {
+                    const primaryBadge = document.createElement('span');
+                    primaryBadge.className = 'badge-primary-action';
+                    primaryBadge.textContent = 'PRIMARY';
+                    imgWrap.appendChild(primaryBadge);
+                }
+                
+                const img = document.createElement('img');
+                img.style.height = '150px';
+                img.style.objectFit = 'cover';
+                img.style.width = '100%';
+                img.alt = file.name;
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+                
+                imgWrap.appendChild(img);
+                card.appendChild(imgWrap);
+                
+                const pDiv = document.createElement('div');
+                pDiv.className = 'p-2 bg-light border-top';
+                
+                const nameLabel = document.createElement('div');
+                nameLabel.className = 'text-truncate text-muted small fw-semibold mb-1';
+                nameLabel.style.fontSize = '0.75rem';
+                nameLabel.textContent = file.name;
+                pDiv.appendChild(nameLabel);
+                
+                const label = document.createElement('label');
+                label.className = 'form-label small fw-bold mb-1';
+                label.style.fontSize = '0.75rem';
+                label.textContent = 'Color Variant:';
+                pDiv.appendChild(label);
+                
+                const colorInput = document.createElement('input');
+                colorInput.type = 'text';
+                colorInput.name = 'image_colors';
+                colorInput.className = 'form-control form-control-sm';
+                colorInput.placeholder = 'e.g. Blue';
+                colorInput.required = true;
+                pDiv.appendChild(colorInput);
+                
+                card.appendChild(pDiv);
+                col.appendChild(card);
+                previewsContainer.appendChild(col);
+            });
+        }
+    });
 </script>
 {% endblock %}

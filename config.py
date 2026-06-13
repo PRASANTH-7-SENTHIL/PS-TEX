@@ -30,7 +30,7 @@ class Config:
     
     # Image Upload Settings
     UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', os.path.join(BASE_DIR, 'uploads'))
-    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB limit
+    MAX_CONTENT_LENGTH = 64 * 1024 * 1024  # 64 MB limit
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
     
     # Razorpay Credentials

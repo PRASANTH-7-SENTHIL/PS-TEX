@@ -109,7 +109,7 @@
                             <div class="img-wrapper">
                                 <a href="{{ url_for('main.product_detail', slug=prod.slug) }}">
                                     {% if prod.images %}
-                                        <img src="{{ url_for('uploaded_files', filename=prod.primary_image) }}" alt="{{ prod.name }}">
+                                        <img src="{{ prod.primary_image_url }}" alt="{{ prod.name }}">
                                     {% else %}
                                         <img src="{{ url_for('static', filename='images/placeholder.svg') }}" alt="{{ prod.name }}">
                                     {% endif %}
@@ -267,7 +267,7 @@
                     <div class="img-wrapper">
                         <a href="{{ url_for('main.product_detail', slug=prod.slug) }}">
                             {% if prod.images %}
-                                <img src="{{ url_for('uploaded_files', filename=prod.primary_image) }}" alt="{{ prod.name }}" loading="lazy">
+                                <img src="{{ prod.primary_image_url }}" alt="{{ prod.name }}" loading="lazy">
                             {% else %}
                                 <img src="{{ url_for('static', filename='images/placeholder.svg') }}" alt="{{ prod.name }}" loading="lazy">
                             {% endif %}

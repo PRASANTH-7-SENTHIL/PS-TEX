@@ -62,6 +62,30 @@ class Category(db.Model):
     # Relationships
     products = db.relationship('Product', backref='category', lazy=True)
 
+    @property
+    def url(self):
+        if not self.image_path:
+            return None
+        path = self.image_path
+        if path.startswith('http://') or path.startswith('https://'):
+            return path
+        if path.startswith('uploads/'):
+            path = path[len('uploads/'):]
+        from flask import url_for
+        return url_for('uploaded_files', filename=path)
+
+    @property
+    def icon_url(self):
+        if not self.icon_path:
+            return self.url  # fallback to main image if icon doesn't exist
+        path = self.icon_path
+        if path.startswith('http://') or path.startswith('https://'):
+            return path
+        if path.startswith('uploads/'):
+            path = path[len('uploads/'):]
+        from flask import url_for
+        return url_for('uploaded_files', filename=path)
+
 class Product(db.Model):
     __tablename__ = 'products'
     
@@ -99,6 +123,19 @@ class Product(db.Model):
             return self.images[0].image_path
         return 'images/placeholder.svg'
 
+    @property
+    def primary_image_url(self):
+        img_path = self.primary_image
+        if img_path.startswith('http://') or img_path.startswith('https://'):
+            return img_path
+        if img_path.startswith('uploads/'):
+            img_path = img_path[len('uploads/'):]
+        if img_path == 'images/placeholder.svg':
+            from flask import url_for
+            return url_for('static', filename='images/placeholder.svg')
+        from flask import url_for
+        return url_for('uploaded_files', filename=img_path)
+
 class ProductImage(db.Model):
     __tablename__ = 'product_images'
     
@@ -106,6 +143,18 @@ class ProductImage(db.Model):
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
     image_path = db.Column(db.String(255), nullable=False)
     is_primary = db.Column(db.Boolean, default=False, nullable=False)
+    color = db.Column(db.String(50), nullable=True)
+
+    @property
+    def url(self):
+        path = self.image_path
+        if path.startswith('http://') or path.startswith('https://'):
+            return path
+        if path.startswith('uploads/'):
+            path = path[len('uploads/'):]
+        from flask import url_for
+        return url_for('uploaded_files', filename=path)
+
 
 class CartItem(db.Model):
     __tablename__ = 'cart'
@@ -219,3 +268,14 @@ class Banner(db.Model):
     
     # Relationships
     category = db.relationship('Category', backref='banners', lazy=True)
+
+    @property
+    def url(self):
+        path = self.image_path
+        if path.startswith('http://') or path.startswith('https://'):
+            return path
+        if path.startswith('uploads/'):
+            path = path[len('uploads/'):]
+        from flask import url_for
+        return url_for('uploaded_files', filename=path)
+

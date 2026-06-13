@@ -68,7 +68,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div class="d-flex align-items-center">
                             <div class="ratio ratio-1x1 bg-cream rounded overflow-hidden me-3" style="width: 50px; height: 50px;">
-                                <img src="{{ url_for('uploaded_files', filename=item.product.primary_image) }}" alt="{{ item.product.name }}" class="object-fit-cover w-100 h-100">
+                                <img src="{{ item.product.primary_image_url }}" alt="{{ item.product.name }}" class="object-fit-cover w-100 h-100">
                             </div>
                             <div>
                                 <h6 class="fw-bold mb-0 small text-truncate" style="max-width: 180px;">{{ item.product.name }}</h6>

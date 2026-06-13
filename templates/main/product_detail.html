@@ -4,6 +4,139 @@
 {% block meta_description %}{{ product.description[:150] if product.description else '' }} - Buy online at PS-TEX.{% endblock %}
 
 {% block content %}
+{% set ns = namespace(colors=[]) %}
+{% for img in product.images %}
+    {% if img.color and img.color.strip() and img.color.strip() not in ns.colors %}
+        {% set ns.colors = ns.colors + [img.color.strip()] %}
+    {% endif %}
+{% endfor %}
+
+{% set primary_color = None %}
+{% for img in product.images %}
+    {% if img.is_primary and img.color %}
+        {% set primary_color = img.color.strip() %}
+    {% endif %}
+{% endfor %}
+{% if not primary_color and product.images and product.images[0].color %}
+    {% set primary_color = product.images[0].color.strip() %}
+{% endif %}
+
+<style>
+    /* Professional Product Gallery & Variant Options Style */
+    .thumbnail-scroll-container {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 10px;
+        padding: 5px 2px 10px 2px;
+        scrollbar-width: thin;
+        -webkit-overflow-scrolling: touch;
+    }
+    .thumbnail-scroll-container::-webkit-scrollbar {
+        height: 6px;
+    }
+    .thumbnail-scroll-container::-webkit-scrollbar-track {
+        background: #f8f9fa;
+        border-radius: 4px;
+    }
+    .thumbnail-scroll-container::-webkit-scrollbar-thumb {
+        background: #ced4da;
+        border-radius: 4px;
+    }
+    .thumbnail-scroll-container::-webkit-scrollbar-thumb:hover {
+        background: #adb5bd;
+    }
+    .thumb-item {
+        flex: 0 0 75px;
+        width: 75px;
+        height: 94px;
+        border: 2px solid #e9ecef;
+        border-radius: 6px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+        position: relative;
+    }
+    .thumb-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .thumb-item:hover {
+        border-color: #adb5bd;
+        transform: translateY(-2px);
+    }
+    .thumb-item.active {
+        border-color: var(--color-maroon);
+        box-shadow: 0 4px 12px rgba(128, 0, 32, 0.15);
+        transform: translateY(-2px) scale(1.02);
+    }
+    
+    .color-variant-container {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 10px;
+        padding: 5px 2px 8px 2px;
+        scrollbar-width: none; /* Hide scrollbar for color swatches */
+        -webkit-overflow-scrolling: touch;
+    }
+    .color-variant-container::-webkit-scrollbar {
+        display: none;
+    }
+    .color-chip {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 18px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        border: 1.5px solid #dee2e6;
+        border-radius: 30px;
+        background-color: #fff;
+        color: #495057;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        user-select: none;
+    }
+    .color-chip:hover {
+        border-color: #adb5bd;
+        background-color: #f8f9fa;
+        color: #212529;
+    }
+    .color-chip.active {
+        border-color: var(--color-maroon);
+        background-color: var(--color-maroon);
+        color: #fff;
+        box-shadow: 0 4px 10px rgba(128, 0, 32, 0.15);
+        font-weight: 600;
+    }
+    .color-chip .bi-check-circle-fill {
+        margin-right: 6px;
+        font-size: 0.9rem;
+    }
+    
+    .selected-color-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 5px;
+        font-weight: 500;
+    }
+    .selected-color-label span {
+        color: var(--color-maroon);
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+        background: rgba(128, 0, 32, 0.05);
+        padding: 2px 8px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-left: 5px;
+    }
+</style>
 
 <!-- ==========================================
      DESKTOP LAYOUT (min-width: 576px)
@@ -16,7 +149,7 @@
                 <!-- Main Image -->
                 <div class="ratio ratio-4x5 bg-cream rounded overflow-hidden mb-3">
                     {% if product.images %}
-                        <img id="mainProductImgDesktop" src="{{ url_for('uploaded_files', filename=product.primary_image) }}" alt="{{ product.name }}" class="object-fit-cover w-100 h-100">
+                        <img id="mainProductImgDesktop" src="{{ product.primary_image_url }}" alt="{{ product.name }}" class="object-fit-cover w-100 h-100">
                     {% else %}
                         <img id="mainProductImgDesktop" src="{{ url_for('static', filename='images/placeholder.svg') }}" alt="{{ product.name }}" class="object-fit-cover w-100 h-100">
                     {% endif %}
@@ -24,12 +157,13 @@
                 
                 <!-- Thumbnails -->
                 {% if product.images and product.images|length > 1 %}
-                <div class="row g-2 px-1">
+                <div class="thumbnail-scroll-container">
                     {% for img in product.images %}
-                    <div class="col-3 col-sm-2">
-                        <div class="ratio ratio-1x1 border rounded overflow-hidden cursor-pointer thumb-img-desktop {% if img.is_primary %}border-maroon{% endif %}" onclick="changeImageDesktop('{{ url_for('uploaded_files', filename=img.image_path) }}', this)" style="cursor: pointer;">
-                            <img src="{{ url_for('uploaded_files', filename=img.image_path) }}" alt="Thumbnail" class="object-fit-cover w-100 h-100">
-                        </div>
+                    <div class="thumb-item {% if img.image_path == product.primary_image %}active{% endif %}" 
+                         data-color="{{ img.color or '' }}" 
+                         data-img-url="{{ img.url }}"
+                         onclick="selectImageVariant('{{ img.url }}', '{{ img.color or '' }}', this)">
+                        <img src="{{ img.url }}" alt="Thumbnail">
                     </div>
                     {% endfor %}
                 </div>
@@ -81,6 +215,29 @@
                     {% endif %}
                 </div>
                 
+                {% if ns.colors %}
+                <div class="mb-4">
+                    <label class="fw-semibold text-muted d-block mb-1">Select Color Variant:</label>
+                    <div class="color-variant-container mb-2">
+                        {% for col in ns.colors %}
+                            {% set first_img = (product.images | selectattr('color', 'equalto', col) | list)[0] %}
+                            <div class="color-chip {% if primary_color == col %}active{% endif %}" 
+                                 data-color="{{ col }}" 
+                                 data-img-url="{{ first_img.url }}"
+                                 onclick="selectColorVariant('{{ col }}', '{{ first_img.url }}', this)">
+                                {% if primary_color == col %}
+                                    <i class="bi bi-check-circle-fill"></i>
+                                {% endif %}
+                                {{ col }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="selected-color-label">
+                        Color: <span class="selected-color-name">{{ primary_color or 'Not Selected' }}</span>
+                    </div>
+                </div>
+                {% endif %}
+                
                 <p class="text-gray mb-4">{{ product.description }}</p>
                 
                 <!-- Purchase Options -->
@@ -124,7 +281,7 @@
                         </tr>
                         <tr>
                             <td class="fw-semibold text-muted">Color</td>
-                            <td>{{ product.color or 'Traditional Maroon' }}</td>
+                            <td class="spec-color-value">{{ product.color or 'Traditional Maroon' }}</td>
                         </tr>
                         <tr>
                             <td class="fw-semibold text-muted">Availability</td>
@@ -220,7 +377,7 @@
                         <div class="img-wrapper">
                             <a href="{{ url_for('main.product_detail', slug=prod.slug) }}">
                                 {% if prod.images %}
-                                    <img src="{{ url_for('uploaded_files', filename=prod.primary_image) }}" alt="{{ prod.name }}">
+                                    <img src="{{ prod.primary_image_url }}" alt="{{ prod.name }}">
                                 {% else %}
                                     <img src="{{ url_for('static', filename='images/placeholder.svg') }}" alt="{{ prod.name }}">
                                 {% endif %}
@@ -272,7 +429,7 @@
         <!-- Main Image -->
         <div class="ratio ratio-4x5 bg-cream rounded overflow-hidden mb-2">
             {% if product.images %}
-                <img id="mainProductImgMobile" src="{{ url_for('uploaded_files', filename=product.primary_image) }}" alt="{{ product.name }}" class="object-fit-cover w-100 h-100">
+                <img id="mainProductImgMobile" src="{{ product.primary_image_url }}" alt="{{ product.name }}" class="object-fit-cover w-100 h-100">
             {% else %}
                 <img id="mainProductImgMobile" src="{{ url_for('static', filename='images/placeholder.svg') }}" alt="{{ product.name }}" class="object-fit-cover w-100 h-100">
             {% endif %}
@@ -280,12 +437,13 @@
         
         <!-- Thumbnails -->
         {% if product.images and product.images|length > 1 %}
-        <div class="row g-2 px-1">
+        <div class="thumbnail-scroll-container">
             {% for img in product.images %}
-            <div class="col-3">
-                <div class="ratio ratio-1x1 border rounded overflow-hidden cursor-pointer thumb-img-mobile {% if img.is_primary %}border-maroon{% endif %}" onclick="changeImageMobile('{{ url_for('uploaded_files', filename=img.image_path) }}', this)">
-                    <img src="{{ url_for('uploaded_files', filename=img.image_path) }}" alt="Thumbnail" class="object-fit-cover w-100 h-100">
-                </div>
+            <div class="thumb-item {% if img.image_path == product.primary_image %}active{% endif %}" 
+                 data-color="{{ img.color or '' }}" 
+                 data-img-url="{{ img.url }}"
+                 onclick="selectImageVariant('{{ img.url }}', '{{ img.color or '' }}', this)">
+                <img src="{{ img.url }}" alt="Thumbnail">
             </div>
             {% endfor %}
         </div>
@@ -335,6 +493,29 @@
                 <span class="text-danger small fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i> Out of Stock</span>
             {% endif %}
         </div>
+
+        {% if ns.colors %}
+        <div class="mb-3">
+            <label class="fw-semibold text-muted d-block mb-1" style="font-size: 13px;">Select Color Variant:</label>
+            <div class="color-variant-container mb-2">
+                {% for col in ns.colors %}
+                    {% set first_img = (product.images | selectattr('color', 'equalto', col) | list)[0] %}
+                    <div class="color-chip {% if primary_color == col %}active{% endif %}" 
+                         data-color="{{ col }}" 
+                         data-img-url="{{ first_img.url }}"
+                         onclick="selectColorVariant('{{ col }}', '{{ first_img.url }}', this)">
+                        {% if primary_color == col %}
+                            <i class="bi bi-check-circle-fill"></i>
+                        {% endif %}
+                        {{ col }}
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="selected-color-label">
+                Color: <span class="selected-color-name">{{ primary_color or 'Not Selected' }}</span>
+            </div>
+        </div>
+        {% endif %}
         
         <p class="text-muted mb-0" style="font-size: 13px; line-height: 1.5; border-top: 1px solid #eee; padding-top: 10px;">{{ product.description }}</p>
     </div>
@@ -377,7 +558,7 @@
                 </tr>
                 <tr>
                     <td class="fw-semibold text-muted">Color</td>
-                    <td>{{ product.color or 'Traditional Saree' }}</td>
+                    <td class="spec-color-value">{{ product.color or 'Traditional Saree' }}</td>
                 </tr>
                 <tr>
                     <td class="fw-semibold text-muted">Availability</td>
@@ -467,7 +648,7 @@
                     <div class="img-wrapper">
                         <a href="{{ url_for('main.product_detail', slug=prod.slug) }}">
                             {% if prod.images %}
-                                <img src="{{ url_for('uploaded_files', filename=prod.primary_image) }}" alt="{{ prod.name }}" loading="lazy">
+                                <img src="{{ prod.primary_image_url }}" alt="{{ prod.name }}" loading="lazy">
                             {% else %}
                                 <img src="{{ url_for('static', filename='images/placeholder.svg') }}" alt="{{ prod.name }}" loading="lazy">
                             {% endif %}
@@ -515,18 +696,81 @@
 
 {% block extra_js %}
 <script>
-    // Gallery switcher for desktop layout
-    function changeImageDesktop(src, element) {
-        document.getElementById('mainProductImgDesktop').src = src;
-        document.querySelectorAll('.thumb-img-desktop').forEach(el => el.classList.remove('border-maroon'));
-        element.classList.add('border-maroon');
+    // Image thumbnail variant switcher (desktop & mobile)
+    function selectImageVariant(imgUrl, colorName, clickedElement) {
+        // 1. Update main display images
+        const mainImgDesktop = document.getElementById('mainProductImgDesktop');
+        if (mainImgDesktop) mainImgDesktop.src = imgUrl;
+
+        const mainImgMobile = document.getElementById('mainProductImgMobile');
+        if (mainImgMobile) mainImgMobile.src = imgUrl;
+
+        // 2. Sync thumbnail active highlights across both desktop and mobile lists
+        document.querySelectorAll('.thumb-item').forEach(thumb => {
+            if (thumb.getAttribute('data-img-url') === imgUrl) {
+                thumb.classList.add('active');
+            } else {
+                thumb.classList.remove('active');
+            }
+        });
+
+        // 3. Highlight corresponding color chip
+        if (colorName && colorName.trim() !== '') {
+            updateActiveColorChip(colorName);
+        }
     }
 
-    // Gallery switcher for mobile layout
-    function changeImageMobile(src, element) {
-        document.getElementById('mainProductImgMobile').src = src;
-        document.querySelectorAll('.thumb-img-mobile').forEach(el => el.classList.remove('border-maroon'));
-        element.classList.add('border-maroon');
+    // Color chip variant selector (desktop & mobile)
+    function selectColorVariant(colorName, imgUrl, clickedElement) {
+        // 1. Update main display images
+        const mainImgDesktop = document.getElementById('mainProductImgDesktop');
+        if (mainImgDesktop) mainImgDesktop.src = imgUrl;
+
+        const mainImgMobile = document.getElementById('mainProductImgMobile');
+        if (mainImgMobile) mainImgMobile.src = imgUrl;
+
+        // 2. Highlight matching color chip & update name label
+        updateActiveColorChip(colorName);
+
+        // 3. Sync thumbnail active highlights and auto-scroll to the matching thumbnail
+        document.querySelectorAll('.thumb-item').forEach(thumb => {
+            if (thumb.getAttribute('data-img-url') === imgUrl) {
+                thumb.classList.add('active');
+                thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            } else {
+                thumb.classList.remove('active');
+            }
+        });
+    }
+
+    // Helper to sync active color chip styling & selected labels
+    function updateActiveColorChip(colorName) {
+        document.querySelectorAll('.color-chip').forEach(chip => {
+            const chipColor = chip.getAttribute('data-color');
+            if (chipColor === colorName) {
+                chip.classList.add('active');
+                // Insert check icon if missing
+                if (!chip.querySelector('.bi-check-circle-fill')) {
+                    const icon = document.createElement('i');
+                    icon.className = 'bi bi-check-circle-fill';
+                    chip.prepend(icon);
+                }
+            } else {
+                chip.classList.remove('active');
+                const icon = chip.querySelector('.bi-check-circle-fill');
+                if (icon) icon.remove();
+            }
+        });
+
+        // Update selected color text labels below options
+        document.querySelectorAll('.selected-color-name').forEach(el => {
+            el.textContent = colorName;
+        });
+
+        // Update specifications tables
+        document.querySelectorAll('.spec-color-value').forEach(el => {
+            el.textContent = colorName;
+        });
     }
 
     // Buy Now Handler for Desktop

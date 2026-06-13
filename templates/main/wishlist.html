@@ -32,7 +32,7 @@
                     <div class="img-wrapper">
                         <a href="{{ url_for('main.product_detail', slug=item.product.slug) }}">
                             {% if item.product.images %}
-                                <img src="{{ url_for('uploaded_files', filename=item.product.primary_image) }}" alt="{{ item.product.name }}">
+                                <img src="{{ item.product.primary_image_url }}" alt="{{ item.product.name }}">
                             {% else %}
                                 <img src="{{ url_for('static', filename='images/placeholder.svg') }}" alt="{{ item.product.name }}">
                             {% endif %}
@@ -110,7 +110,7 @@
                 <div class="img-wrapper">
                     <a href="{{ url_for('main.product_detail', slug=item.product.slug) }}">
                         {% if item.product.images %}
-                            <img src="{{ url_for('uploaded_files', filename=item.product.primary_image) }}" alt="{{ item.product.name }}" loading="lazy">
+                            <img src="{{ item.product.primary_image_url }}" alt="{{ item.product.name }}" loading="lazy">
                         {% else %}
                             <img src="{{ url_for('static', filename='images/placeholder.svg') }}" alt="{{ item.product.name }}" loading="lazy">
                         {% endif %}

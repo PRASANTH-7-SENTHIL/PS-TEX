@@ -208,7 +208,7 @@
                                     <div>
                                         <div class="img-wrapper">
                                             <a href="{{ url_for('main.product_detail', slug=wish.product.slug) }}">
-                                                <img src="{{ url_for('uploaded_files', filename=wish.product.primary_image) }}" alt="{{ wish.product.name }}">
+                                                <img src="{{ wish.product.primary_image_url }}" alt="{{ wish.product.name }}">
                                             </a>
                                         </div>
                                         <div class="card-body pb-0">
@@ -422,7 +422,7 @@
                             <!-- 4:5 Image wrapper -->
                             <div class="img-wrapper">
                                 <a href="{{ url_for('main.product_detail', slug=wish.product.slug) }}">
-                                    <img src="{{ url_for('uploaded_files', filename=wish.product.primary_image) }}" alt="{{ wish.product.name }}" loading="lazy">
+                                    <img src="{{ wish.product.primary_image_url }}" alt="{{ wish.product.name }}" loading="lazy">
                                 </a>
                             </div>
                         </div>

@@ -199,24 +199,35 @@ def add_product():
         db.session.flush() # Flush to get product.id for image references
         
         # Save multiple images
-        images = request.files.getlist('images')
+        # Save multiple images (from files or folder upload)
+        images_list = request.files.getlist('images_folder')
+        if not images_list or all(f.filename == '' for f in images_list):
+            images_list = request.files.getlist('images')
+            
+        uploaded_files = [f for f in images_list if f and f.filename != '']
+        image_colors = request.form.getlist('image_colors')
+        
         saved_any = False
         img_index = 1
         
-        for file in images:
-            if file and file.filename != '':
-                saved_path = save_product_image(file, product_code, img_index)
-                if saved_path:
-                    # Make the first successfully saved image the primary one
-                    is_primary = not saved_any
-                    prod_img = ProductImage(
-                        product_id=new_prod.id,
-                        image_path=saved_path,
-                        is_primary=is_primary
-                    )
-                    db.session.add(prod_img)
-                    saved_any = True
-                    img_index += 1
+        for idx, file in enumerate(uploaded_files):
+            saved_path = save_product_image(file, product_code, img_index)
+            if saved_path:
+                # Make the first successfully saved image the primary one
+                is_primary = not saved_any
+                color_val = image_colors[idx].strip() if idx < len(image_colors) else ''
+                if not color_val:
+                    color_val = None
+                
+                prod_img = ProductImage(
+                    product_id=new_prod.id,
+                    image_path=saved_path,
+                    is_primary=is_primary,
+                    color=color_val
+                )
+                db.session.add(prod_img)
+                saved_any = True
+                img_index += 1
                     
         try:
             db.session.commit()
@@ -265,8 +276,19 @@ def edit_product(prod_id):
         product.stock_quantity = stock_quantity
         product.availability_status = availability_status if stock_quantity > 0 else 'Out of Stock'
         
+        # Update existing images' colors
+        for img in product.images:
+            color_val = request.form.get(f'existing_image_color_{img.id}', '').strip()
+            img.color = color_val if color_val else None
+
         # Save new images if uploaded
-        images = request.files.getlist('images')
+        images_list = request.files.getlist('images_folder')
+        if not images_list or all(f.filename == '' for f in images_list):
+            images_list = request.files.getlist('images')
+            
+        uploaded_files = [f for f in images_list if f and f.filename != '']
+        image_colors = request.form.getlist('image_colors')
+        
         # Determine current index
         current_img_count = len(product.images)
         img_index = current_img_count + 1
@@ -274,19 +296,23 @@ def edit_product(prod_id):
         # Check if product has primary image
         has_primary = any([img.is_primary for img in product.images])
         
-        for file in images:
-            if file and file.filename != '':
-                saved_path = save_product_image(file, product.product_code, img_index)
-                if saved_path:
-                    is_primary = not has_primary
-                    prod_img = ProductImage(
-                        product_id=product.id,
-                        image_path=saved_path,
-                        is_primary=is_primary
-                    )
-                    db.session.add(prod_img)
-                    has_primary = True
-                    img_index += 1
+        for idx, file in enumerate(uploaded_files):
+            saved_path = save_product_image(file, product.product_code, img_index)
+            if saved_path:
+                is_primary = not has_primary
+                color_val = image_colors[idx].strip() if idx < len(image_colors) else ''
+                if not color_val:
+                    color_val = None
+                
+                prod_img = ProductImage(
+                    product_id=product.id,
+                    image_path=saved_path,
+                    is_primary=is_primary,
+                    color=color_val
+                )
+                db.session.add(prod_img)
+                has_primary = True
+                img_index += 1
                     
         try:
             db.session.commit()

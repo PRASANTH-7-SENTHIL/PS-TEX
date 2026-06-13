@@ -32,7 +32,7 @@
                             <tr>
                                 <td>
                                     <div class="ratio ratio-4x5 bg-cream rounded overflow-hidden" style="width: 80px; height: 100px; position: relative;">
-                                        <img src="{{ url_for('uploaded_files', filename=item.image_path) }}" alt="{{ item.name }}" class="object-fit-cover w-100 h-100" style="position: absolute; top:0; left:0;">
+                                        <img src="{{ item.image_path }}" alt="{{ item.name }}" class="object-fit-cover w-100 h-100" style="position: absolute; top:0; left:0;">
                                     </div>
                                 </td>
                                 <td>
@@ -138,7 +138,7 @@
                 <!-- Saree Image (Aspect Ratio 4:5) -->
                 <div style="width: 70px; flex-shrink: 0;">
                     <div class="ratio ratio-4x5 bg-cream rounded overflow-hidden">
-                        <img src="{{ url_for('uploaded_files', filename=item.image_path) }}" alt="{{ item.name }}" class="object-fit-cover w-100 h-100">
+                        <img src="{{ item.image_path }}" alt="{{ item.name }}" class="object-fit-cover w-100 h-100">
                     </div>
                 </div>
                 <!-- Saree Details -->

@@ -20,7 +20,7 @@
                 {% if banner.category %}
                 <a href="{{ url_for('main.shop', category_slug=banner.category.slug) }}" class="text-decoration-none d-block">
                 {% endif %}
-                <div class="hero-slide" style="background: url('{{ url_for('uploaded_files', filename=banner.image_path) }}') center/cover no-repeat;">
+                <div class="hero-slide" style="background: url('{{ banner.url }}') center/cover no-repeat;">
                     <div class="container py-5">
                         <div class="hero-card-overlay">
                             {% if banner.title %}
@@ -102,7 +102,7 @@
                 <div class="card border-0 shadow-sm h-100 overflow-hidden text-center position-relative" style="border-radius: 8px;">
                     <div class="ratio ratio-1x1 bg-cream">
                         {% if cat.image_path %}
-                            <img src="{{ url_for('uploaded_files', filename=cat.image_path) }}" alt="{{ cat.name }}" class="object-fit-cover w-100 h-100 transition-all hover-zoom">
+                            <img src="{{ cat.url }}" alt="{{ cat.name }}" class="object-fit-cover w-100 h-100 transition-all hover-zoom">
                         {% else %}
                             <div class="d-flex align-items-center justify-content-center p-4">
                                 <i class="bi bi-palette2 text-maroon" style="font-size: 4rem;"></i>
@@ -149,7 +149,7 @@
                         <div class="img-wrapper">
                             <a href="{{ url_for('main.product_detail', slug=prod.slug) }}">
                                 {% if prod.images %}
-                                    <img src="{{ url_for('uploaded_files', filename=prod.primary_image) }}" alt="{{ prod.name }}">
+                                    <img src="{{ prod.primary_image_url }}" alt="{{ prod.name }}">
                                 {% else %}
                                     <img src="{{ url_for('static', filename='images/placeholder.svg') }}" alt="{{ prod.name }}">
                                 {% endif %}
@@ -228,7 +228,7 @@
                         <div class="img-wrapper">
                             <a href="{{ url_for('main.product_detail', slug=prod.slug) }}">
                                 {% if prod.images %}
-                                    <img src="{{ url_for('uploaded_files', filename=prod.primary_image) }}" alt="{{ prod.name }}">
+                                    <img src="{{ prod.primary_image_url }}" alt="{{ prod.name }}">
                                 {% else %}
                                     <img src="{{ url_for('static', filename='images/placeholder.svg') }}" alt="{{ prod.name }}">
                                 {% endif %}
@@ -279,7 +279,7 @@
             <a href="{{ url_for('main.shop', category_slug=cat.slug) }}" class="text-decoration-none text-center d-inline-block me-3" style="width: 75px; flex-shrink: 0;">
                 <div class="rounded-circle bg-cream border border-gold d-flex align-items-center justify-content-center mx-auto mb-1 overflow-hidden" style="width: 55px; height: 55px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
                     {% if cat.icon_path or cat.image_path %}
-                        <img src="{{ url_for('uploaded_files', filename=cat.icon_path or cat.image_path) }}" alt="{{ cat.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        <img src="{{ cat.icon_url }}" alt="{{ cat.name }}" style="width: 100%; height: 100%; object-fit: cover;">
                     {% else %}
                         <i class="bi bi-palette2 text-maroon fs-5"></i>
                     {% endif %}
@@ -305,7 +305,7 @@
                 <a href="{{ url_for('main.shop', category_slug=banner.category.slug) }}" class="text-decoration-none d-block">
                 {% endif %}
                 <div class="mobile-hero-img-wrapper" style="width: 100%; height: 260px; overflow: hidden; position: relative;">
-                    <img src="{{ url_for('uploaded_files', filename=banner.image_path) }}" class="d-block w-100 h-100" style="object-fit: cover;">
+                    <img src="{{ banner.url }}" class="d-block w-100 h-100" style="object-fit: cover;">
                 </div>
                 <div class="bg-cream p-3 text-center border-bottom border-gold text-dark" style="min-height: 120px;">
                     {% if banner.title %}
@@ -376,7 +376,7 @@
             <div class="card border-0 shadow-sm overflow-hidden text-center me-3" style="width: 140px; border-radius: 8px; flex-shrink: 0; background: #fff;">
                 <div class="bg-cream" style="width: 140px; height: 140px; overflow: hidden; position: relative;">
                     {% if cat.image_path %}
-                        <img src="{{ url_for('uploaded_files', filename=cat.image_path) }}" alt="{{ cat.name }}" class="w-100 h-100 object-fit-cover" loading="lazy">
+                        <img src="{{ cat.url }}" alt="{{ cat.name }}" class="w-100 h-100 object-fit-cover" loading="lazy">
                     {% else %}
                         <div class="w-100 h-100 d-flex align-items-center justify-content-center">
                             <i class="bi bi-palette2 text-maroon fs-2"></i>
@@ -420,7 +420,7 @@
                 <div class="img-wrapper">
                     <a href="{{ url_for('main.product_detail', slug=prod.slug) }}">
                         {% if prod.images %}
-                            <img src="{{ url_for('uploaded_files', filename=prod.primary_image) }}" alt="{{ prod.name }}" loading="lazy">
+                            <img src="{{ prod.primary_image_url }}" alt="{{ prod.name }}" loading="lazy">
                         {% else %}
                             <img src="{{ url_for('static', filename='images/placeholder.svg') }}" alt="{{ prod.name }}" loading="lazy">
                         {% endif %}
@@ -501,7 +501,7 @@
                 <div class="img-wrapper">
                     <a href="{{ url_for('main.product_detail', slug=prod.slug) }}">
                         {% if prod.images %}
-                            <img src="{{ url_for('uploaded_files', filename=prod.primary_image) }}" alt="{{ prod.name }}" loading="lazy">
+                            <img src="{{ prod.primary_image_url }}" alt="{{ prod.name }}" loading="lazy">
                         {% else %}
                             <img src="{{ url_for('static', filename='images/placeholder.svg') }}" alt="{{ prod.name }}" loading="lazy">
                         {% endif %}

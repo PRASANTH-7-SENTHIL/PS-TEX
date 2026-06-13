@@ -52,7 +52,7 @@ def view_cart():
                 'product_code': item.product.product_code,
                 'slug': item.product.slug,
                 'price': price,
-                'image_path': item.product.primary_image,
+                'image_path': item.product.primary_image_url,
                 'quantity': item.quantity,
                 'stock_quantity': item.product.stock_quantity,
                 'total': item_total
@@ -73,7 +73,7 @@ def view_cart():
                     'product_code': prod.product_code,
                     'slug': prod.slug,
                     'price': price,
-                    'image_path': prod.primary_image,
+                    'image_path': prod.primary_image_url,
                     'quantity': qty,
                     'stock_quantity': prod.stock_quantity,
                     'total': item_total
